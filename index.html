@@ -1,0 +1,1249 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <title>MYTONE 予約システム</title>
+    <!-- LIFF SDK: CDN直接読み込み (GitHub Pages用) -->
+    <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+    <style>
+        /* ========== リセット・ベース ========== */
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        html {
+            font-size: 16px;
+            height: 100%;
+        }
+
+        body {
+            font-family: 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Meiryo', sans-serif;
+            background: #f0f4f0;
+            color: #1a1a1a;
+            min-height: 100%;
+            padding-bottom: calc(env(safe-area-inset-bottom) + 16px);
+        }
+
+        /* ========== ヘッダー ========== */
+        .app-header {
+            background: linear-gradient(135deg, #1b5e20, #2e7d32);
+            color: #fff;
+            padding: 14px 16px;
+            padding-top: calc(env(safe-area-inset-top) + 14px);
+            text-align: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .app-header h1 {
+            font-size: 1.1rem;
+            font-weight: 700;
+            letter-spacing: 0.05em;
+        }
+
+        .app-header .role-badge {
+            display: inline-block;
+            font-size: 0.7rem;
+            background: rgba(255, 255, 255, 0.25);
+            border-radius: 10px;
+            padding: 2px 8px;
+            margin-top: 3px;
+        }
+
+        /* ========== 共通 ========== */
+        .hidden {
+            display: none !important;
+        }
+
+        .container {
+            max-width: 480px;
+            margin: 0 auto;
+            padding: 12px 14px;
+        }
+
+        /* ========== カード ========== */
+        .card {
+            background: #fff;
+            border-radius: 14px;
+            padding: 16px;
+            margin-bottom: 12px;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+        }
+
+        .card-title {
+            font-size: 1rem;
+            font-weight: 700;
+            color: #1b5e20;
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #e8f5e9;
+        }
+
+        /* ========== ボタン ========== */
+        .btn {
+            display: block;
+            width: 100%;
+            padding: 14px 16px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            text-align: center;
+            margin-top: 8px;
+            transition: opacity 0.15s, transform 0.1s;
+            letter-spacing: 0.03em;
+        }
+
+        .btn:active {
+            opacity: 0.75;
+            transform: scale(0.98);
+        }
+
+        .btn:disabled {
+            opacity: 0.45;
+            cursor: default;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #2e7d32, #43a047);
+            color: #fff;
+            box-shadow: 0 2px 6px rgba(46, 125, 50, 0.35);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #546e7a, #78909c);
+            color: #fff;
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #c62828, #e53935);
+            color: #fff;
+        }
+
+        .btn-outline {
+            background: #fff;
+            color: #2e7d32;
+            border: 2px solid #2e7d32;
+        }
+
+        .btn-small {
+            display: inline-block;
+            width: auto;
+            padding: 8px 14px;
+            font-size: 0.85rem;
+            margin-top: 6px;
+        }
+
+        /* ========== フォーム ========== */
+        label {
+            display: block;
+            font-size: 0.82rem;
+            font-weight: 700;
+            color: #555;
+            margin-top: 12px;
+            margin-bottom: 4px;
+        }
+
+        input,
+        select {
+            width: 100%;
+            padding: 12px 14px;
+            border: 1.5px solid #ddd;
+            border-radius: 10px;
+            font-size: 1rem;
+            background: #fafafa;
+            color: #1a1a1a;
+            appearance: none;
+            -webkit-appearance: none;
+            transition: border-color 0.2s;
+        }
+
+        input:focus,
+        select:focus {
+            outline: none;
+            border-color: #2e7d32;
+            background: #fff;
+        }
+
+        select {
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23666' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 14px center;
+            padding-right: 36px;
+        }
+
+        /* ========== メッセージ ========== */
+        .msg-error {
+            background: #ffebee;
+            color: #c62828;
+            border-left: 4px solid #e53935;
+            padding: 10px 12px;
+            border-radius: 0 8px 8px 0;
+            font-size: 0.88rem;
+            margin-top: 8px;
+        }
+
+        .msg-success {
+            background: #e8f5e9;
+            color: #1b5e20;
+            border-left: 4px solid #43a047;
+            padding: 10px 12px;
+            border-radius: 0 8px 8px 0;
+            font-size: 0.88rem;
+            margin-top: 8px;
+        }
+
+        .msg-info {
+            background: #e3f2fd;
+            border-left: 4px solid #1976d2;
+            padding: 10px 12px;
+            border-radius: 0 8px 8px 0;
+            font-size: 0.88rem;
+            margin-top: 8px;
+            color: #0d47a1;
+        }
+
+        .msg-warn {
+            background: #fff8e1;
+            border-left: 4px solid #f9a825;
+            padding: 10px 12px;
+            border-radius: 0 8px 8px 0;
+            font-size: 0.88rem;
+            margin-top: 8px;
+            color: #e65100;
+        }
+
+        /* ========== ローディング ========== */
+        .loading-screen {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 60vh;
+            gap: 16px;
+        }
+
+        .spinner {
+            width: 44px;
+            height: 44px;
+            border: 4px solid #e8f5e9;
+            border-top-color: #2e7d32;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .loading-text {
+            color: #888;
+            font-size: 0.9rem;
+        }
+
+        /* ========== タブバー ========== */
+        .tab-bar {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 12px;
+            background: #e8f5e9;
+            border-radius: 12px;
+            padding: 4px;
+        }
+
+        .tab-bar .tab {
+            flex: 1;
+            padding: 10px;
+            text-align: center;
+            border-radius: 9px;
+            cursor: pointer;
+            font-size: 0.88rem;
+            font-weight: 600;
+            color: #555;
+            transition: all 0.2s;
+        }
+
+        .tab-bar .tab.active {
+            background: #fff;
+            color: #2e7d32;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12);
+        }
+
+        /* ========== スロットボタン ========== */
+        .slot-btn {
+            display: block;
+            width: 100%;
+            padding: 12px 14px;
+            margin: 6px 0;
+            border: 1.5px solid #a5d6a7;
+            border-radius: 10px;
+            background: #f1f8e9;
+            color: #1b5e20;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            text-align: left;
+            transition: all 0.15s;
+        }
+
+        .slot-btn:active {
+            background: #c8e6c9;
+        }
+
+        .slot-btn.selected {
+            background: linear-gradient(135deg, #2e7d32, #43a047);
+            color: #fff;
+            border-color: #2e7d32;
+        }
+
+        /* ========== 診断士グループ ========== */
+        .diag-group {
+            margin-bottom: 14px;
+        }
+
+        .diag-group-title {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: #1b5e20;
+            background: #e8f5e9;
+            padding: 6px 10px;
+            border-radius: 8px;
+            margin-bottom: 6px;
+        }
+
+        /* ========== 予約アイテム ========== */
+        .booking-item {
+            border-bottom: 1px solid #f0f0f0;
+            padding: 12px 0;
+        }
+
+        .booking-item:last-child {
+            border-bottom: none;
+        }
+
+        .booking-item .bi-name {
+            font-weight: 700;
+            font-size: 1rem;
+            margin-bottom: 3px;
+        }
+
+        .booking-item .bi-step {
+            display: inline-block;
+            font-size: 0.72rem;
+            background: #e8f5e9;
+            color: #2e7d32;
+            border-radius: 6px;
+            padding: 2px 7px;
+            margin-left: 6px;
+            font-weight: 700;
+        }
+
+        .booking-item .bi-sub {
+            font-size: 0.85rem;
+            color: #666;
+            margin-top: 2px;
+        }
+
+        .booking-item .bi-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 8px;
+        }
+
+        .booking-item .bi-actions .btn {
+            margin-top: 0;
+        }
+
+        /* ========== 稼働枠アイテム ========== */
+        .avail-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .avail-item:last-child {
+            border-bottom: none;
+        }
+
+        .avail-time {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: #1a1a1a;
+        }
+
+        /* ========== 確認詳細 ========== */
+        .confirm-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.92rem;
+        }
+
+        .confirm-table tr td {
+            padding: 7px 4px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .confirm-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .confirm-table td:first-child {
+            font-weight: 700;
+            color: #555;
+            width: 5em;
+        }
+
+        /* ========== 登録画面 ========== */
+        .register-hero {
+            text-align: center;
+            padding: 20px 0 12px;
+        }
+
+        .register-hero .icon {
+            font-size: 3rem;
+            margin-bottom: 8px;
+        }
+
+        .register-hero p {
+            font-size: 0.88rem;
+            color: #666;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- ========== ヘッダー ========== -->
+    <div class="app-header">
+        <h1>MYTONE 予約システム</h1>
+        <div id="roleBadge" class="role-badge hidden"></div>
+    </div>
+
+    <!-- ========== 初期化中 ========== -->
+    <div id="screenLoading" class="container">
+        <div class="loading-screen">
+            <div class="spinner"></div>
+            <div class="loading-text">読み込み中...</div>
+        </div>
+    </div>
+
+    <!-- ========== 未登録画面 ========== -->
+    <div id="screenRegister" class="container hidden">
+        <div class="register-hero">
+            <div class="icon">👤</div>
+            <p>スタッフまたは診断士として<br>ご登録ください</p>
+        </div>
+        <div class="card">
+            <div class="tab-bar">
+                <div class="tab active" onclick="switchRegTab('staff')">スタッフ登録</div>
+                <div class="tab" onclick="switchRegTab('diag')">診断士登録</div>
+            </div>
+            <div id="regStaff">
+                <label>店舗コード</label>
+                <input id="regSalonCode" placeholder="例: S001" autocomplete="off">
+                <button class="btn btn-primary" onclick="doLinkSalon()">登録する</button>
+            </div>
+            <div id="regDiag" class="hidden">
+                <label>診断士ID</label>
+                <input id="regDiagId" placeholder="例: D001" autocomplete="off">
+                <button class="btn btn-primary" onclick="doLinkDiag()">登録する</button>
+            </div>
+            <div id="regMsg"></div>
+        </div>
+    </div>
+
+    <!-- ========== スタッフ画面 ========== -->
+    <div id="screenStaff" class="container hidden">
+        <div class="tab-bar" id="staffTabs">
+            <div class="tab active" onclick="switchStaffTab('new')">新規予約</div>
+            <div class="tab" onclick="switchStaffTab('list')">予約一覧</div>
+        </div>
+
+        <!-- 新規予約 -->
+        <div id="staffNew">
+            <!-- Step種別選択 -->
+            <div class="card" id="stepSelect">
+                <div class="card-title">予約種別を選択</div>
+                <button class="btn btn-primary" onclick="startStep('STEP1')">📋 STEP1 初回診断</button>
+                <button class="btn btn-outline" onclick="startStep2Search()" style="margin-top:10px">🔄 STEP2
+                    フォロー診断</button>
+            </div>
+
+            <!-- STEP2: 親STEP1検索 -->
+            <div class="card hidden" id="step2ParentSearch">
+                <div class="card-title">STEP2: 親 STEP1 を検索</div>
+                <label>顧客電話番号</label>
+                <input id="s2Phone" type="tel" placeholder="09012345678">
+                <button class="btn btn-primary" onclick="doFindParent()">検索</button>
+                <div id="s2ParentList"></div>
+                <div id="s2Msg"></div>
+                <button class="btn btn-outline" onclick="resetNewBooking()" style="margin-top:10px">← 戻る</button>
+            </div>
+
+            <!-- 顧客情報入力 -->
+            <div class="card hidden" id="custInfo">
+                <div class="card-title" id="custStepLabel"></div>
+                <label>顧客名 <span style="color:#e53935">*</span></label>
+                <input id="custName" placeholder="山田 太郎">
+                <label>電話番号 <span style="color:#e53935">*</span></label>
+                <input id="custPhone" type="tel" placeholder="09012345678">
+                <label>性別</label>
+                <select id="custGender">
+                    <option value="">未選択</option>
+                    <option>男性</option>
+                    <option>女性</option>
+                    <option>その他</option>
+                </select>
+                <label>年齢</label>
+                <input id="custAge" type="number" placeholder="30" min="0" max="120">
+                <button class="btn btn-primary" onclick="goToDateInput()" style="margin-top:14px">次へ: 日にち選択 →</button>
+                <button class="btn btn-outline" onclick="resetNewBooking()" style="margin-top:8px">← 戻る</button>
+            </div>
+
+            <!-- 日付入力＋空き検索 -->
+            <div class="card hidden" id="dateSearch">
+                <div class="card-title">日にち指定・空き検索</div>
+                <label>基準日</label>
+                <input id="searchDate" type="date">
+                <button class="btn btn-primary" onclick="doSearchSlots()" style="margin-top:14px">🔍 空きを検索</button>
+                <div id="slotsArea" style="margin-top:12px"></div>
+                <button class="btn btn-secondary hidden" id="btnFallback" onclick="doSearchFallback()"
+                    style="margin-top:8px">別の診断士でも探す</button>
+            </div>
+
+            <!-- 確認画面 -->
+            <div class="card hidden" id="confirmArea">
+                <div class="card-title">予約内容の確認</div>
+                <div id="confirmDetail"></div>
+                <button class="btn btn-primary" onclick="doCreateBooking()" style="margin-top:14px">✅ 予約を確定する</button>
+                <button class="btn btn-outline" onclick="backToSlots()" style="margin-top:8px">← 戻る</button>
+                <div id="confirmMsg"></div>
+            </div>
+        </div>
+
+        <!-- 予約一覧 -->
+        <div id="staffList" class="hidden">
+            <div class="card">
+                <div class="card-title">予約一覧（本日以降）</div>
+                <label>電話番号で絞り込み（任意）</label>
+                <input id="listPhone" type="tel" placeholder="09012345678">
+                <button class="btn btn-secondary" onclick="doListBookings()" style="margin-top:10px">🔍 検索</button>
+                <div id="bookingsList" style="margin-top:12px"></div>
+            </div>
+
+            <!-- 変更エリア -->
+            <div class="card hidden" id="changeArea">
+                <div class="card-title">予約変更</div>
+                <div id="changeInfo" class="msg-info"></div>
+                <label>新しい基準日</label>
+                <input id="changeDate" type="date">
+                <button class="btn btn-primary" onclick="doSearchChangeSlots()" style="margin-top:10px">🔍
+                    空きを検索</button>
+                <div id="changeSlotsArea" style="margin-top:12px"></div>
+                <button class="btn btn-primary hidden" id="btnConfirmChange" onclick="doConfirmChange()"
+                    style="margin-top:8px">この日時に変更する</button>
+                <button class="btn btn-outline" onclick="closeChangeArea()" style="margin-top:8px">キャンセル</button>
+                <div id="changeMsg"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========== 診断士画面 ========== -->
+    <div id="screenDiag" class="container hidden">
+        <div class="tab-bar">
+            <div class="tab active" onclick="switchDiagTab('add')">稼働枠追加</div>
+            <div class="tab" onclick="switchDiagTab('list')">稼働枠一覧</div>
+        </div>
+
+        <div id="diagAdd">
+            <div class="card">
+                <div class="card-title">稼働枠を追加</div>
+                <label>日付</label>
+                <input id="availDate" type="date">
+                <label>開始時刻（30分刻み）</label>
+                <select id="availTime"></select>
+                <label>ブロック数（1ブロック = 130分）</label>
+                <select id="availBlocks">
+                    <option value="1">1ブロック（130分）</option>
+                    <option value="2">2ブロック（260分）</option>
+                    <option value="3">3ブロック（390分）</option>
+                </select>
+                <button class="btn btn-primary" onclick="doCreateAvail()" style="margin-top:14px">➕ 稼働枠を作成</button>
+                <div id="availMsg"></div>
+            </div>
+        </div>
+
+        <div id="diagList" class="hidden">
+            <div class="card">
+                <div class="card-title">稼働枠一覧（2週間）</div>
+                <button class="btn btn-secondary" onclick="doListAvail()">🔄 更新</button>
+                <div id="availList" style="margin-top:12px"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        /* ========== グローバル状態 ========== */
+        const STATE = {
+            line_user_id: '',
+            role: '',
+            salon_id: '',
+            diag_id: '',
+            step_type: '',
+            parent_booking_id: '',
+            preferred_diag_id: '',
+            customer: {},
+            selectedSlot: null,
+            selectedDiagId: '',
+            selectedDiagName: '',
+            changeBookingId: '',
+            changeSlot: null,
+        };
+
+        /* ========== 設定: ここだけ変更する ========== */
+        // LINE Developers Console の LIFF ID
+        const LIFF_ID = 'ここにLIFF IDを記入';
+        // GAS デプロイURL（デプロイを管理 → ウェブアプリURL）
+        const GAS_URL = 'https://script.google.com/macros/s/AKfycbyJ6RasshdyfQVueQvWu58MIS-ILVXDwxiK-6m4lmCmhV28m_ebOOhwhWLL36yW3JJ-mg/exec';
+
+        // DOM読み込み完了後にLIFF初期化（SDKはサーバー側でインライン展開済み）
+        document.addEventListener('DOMContentLoaded', function () {
+            if (typeof liff === 'undefined') {
+                showStep('⚠️ LIFF SDKが読み込まれていません。ページを再読み込みしてください。', true);
+                return;
+            }
+            initLiff();
+        });
+
+        // ローディング画面にステップメッセージを表示
+        function showStep(msg, isError) {
+            const cls = isError ? 'msg-error' : 'loading-text';
+            el('screenLoading').innerHTML =
+                '<div class="loading-screen">'
+                + (isError ? '' : '<div class="spinner"></div>')
+                + '<div class="' + cls + '" style="text-align:center;padding:0 16px">' + msg + '</div>'
+                + '</div>';
+        }
+
+        async function initLiff() {
+            // タイムアウト付き Promise
+            function withTimeout(promise, ms, label) {
+                return Promise.race([
+                    promise,
+                    new Promise((_, reject) =>
+                        setTimeout(() => reject(new Error(label + ' が ' + (ms / 1000) + '秒以内に完了しませんでした')), ms)
+                    )
+                ]);
+            }
+
+            try {
+                // STEP 1: LIFF_ID 確認
+                showStep('ステップ 1/4: LIFF ID 確認中...');
+                console.log('LIFF_ID:', LIFF_ID);
+                if (!LIFF_ID || LIFF_ID === '') {
+                    showStep('⚠️ LIFF IDが設定されていません。GASスクリプトプロパティ「LIFF_ID」を確認してください。', true);
+                    return;
+                }
+
+                // STEP 2: liff.init()
+                const shortId = LIFF_ID.substring(0, 6);
+                showStep('ステップ 2/4: LIFF 初期化中... (ID: ' + shortId + '...)');
+                try {
+                    await withTimeout(
+                        liff.init({ liffId: LIFF_ID }),
+                        15000,
+                        'liff.init()'
+                    );
+                } catch (initErr) {
+                    // init失敗時: 現在URLを表示してエンドポイントURL確認を促す
+                    const currentUrl = location.href.split('?')[0];
+                    showStep(
+                        '⚠️ LIFF初期化失敗: ' + (initErr.message || String(initErr))
+                        + '<br><br>【確認事項】<br>'
+                        + 'LINE Developers Console のLIFF設定で<br>'
+                        + '「エンドポイントURL」が以下と一致しているか確認してください:<br>'
+                        + '<small style="word-break:break-all;color:#555">' + currentUrl + '</small>',
+                        true
+                    );
+                    return;
+                }
+
+                // STEP 3: ログイン確認
+                showStep('ステップ 3/4: ログイン状態確認中...');
+                if (!liff.isLoggedIn()) {
+                    showStep('ユーザーログイン処理中...');
+                    liff.login();
+                    return;
+                }
+
+                // STEP 4: プロフィール取得
+                showStep('ステップ 4/4: プロフィール取得中...');
+                const profile = await withTimeout(
+                    liff.getProfile(),
+                    10000,
+                    'liff.getProfile()'
+                );
+                STATE.line_user_id = profile.userId;
+                console.log('line_user_id:', STATE.line_user_id.substring(0, 6) + '...');
+
+                showStep('サーバーに接続中...');
+                bootstrap();
+            } catch (e) {
+                console.error('LIFF init error:', e);
+                showStep('⚠️ 初期化エラー: ' + (e.message || String(e)), true);
+            }
+        }
+
+        /* ========== Bootstrap ========== */
+        function bootstrap() {
+            showStep('サーバーからユーザー情報を取得中...');
+
+            // apiBootstrap のタイムアウト
+            const timer = setTimeout(function () {
+                showStep('⚠️ サーバーからの応答がタイムアウトしました (15秒)。ページを再読み込みしてください。', true);
+            }, 15000);
+
+            callApi('apiBootstrap', { line_user_id: STATE.line_user_id }, (res) => {
+                clearTimeout(timer);
+                hide('screenLoading');
+                if (!res.ok) { showFatalError(res.error); return; }
+                STATE.role = res.role;
+                if (res.role === 'staff') {
+                    STATE.salon_id = res.salon_id;
+                    setBadge('スタッフ');
+                    show('screenStaff');
+                    initStaffUI();
+                } else if (res.role === 'diagnostician') {
+                    STATE.diag_id = res.diag_id;
+                    setBadge('診断士');
+                    show('screenDiag');
+                    initDiagUI();
+                } else {
+                    show('screenRegister');
+                }
+            });
+        }
+
+        function setBadge(label) {
+            const b = el('roleBadge');
+            b.textContent = label;
+            b.classList.remove('hidden');
+        }
+
+        function showFatalError(msg) {
+            el('screenLoading').innerHTML = `<div class="container"><div class="msg-error" style="margin-top:40px">⚠️ ${esc(msg)}</div></div>`;
+            show('screenLoading');
+        }
+
+        /* ========== 登録画面 ========== */
+        function switchRegTab(tab) {
+            const tabs = document.querySelectorAll('#screenRegister .tab');
+            tabs.forEach(t => t.classList.remove('active'));
+            if (tab === 'staff') {
+                tabs[0].classList.add('active');
+                show('regStaff'); hide('regDiag');
+            } else {
+                tabs[1].classList.add('active');
+                hide('regStaff'); show('regDiag');
+            }
+            el('regMsg').innerHTML = '';
+        }
+
+        function doLinkSalon() {
+            const code = el('regSalonCode').value.trim();
+            if (!code) { el('regMsg').innerHTML = '<div class="msg-error">店舗コードを入力してください</div>'; return; }
+            el('regMsg').innerHTML = '<div class="loading-text" style="text-align:center;padding:10px">登録中...</div>';
+            callApi('apiLinkSalon', { line_user_id: STATE.line_user_id, salon_code: code }, (res) => {
+                if (!res.ok) { el('regMsg').innerHTML = `<div class="msg-error">${esc(res.error)}</div>`; return; }
+                STATE.role = 'staff'; STATE.salon_id = res.salon_id;
+                setBadge('スタッフ');
+                hide('screenRegister'); show('screenStaff');
+                initStaffUI();
+                el('regMsg').innerHTML = '';
+                showToast(`${res.salon_name} のスタッフとして登録しました ✅`);
+            });
+        }
+
+        function doLinkDiag() {
+            const id = el('regDiagId').value.trim();
+            if (!id) { el('regMsg').innerHTML = '<div class="msg-error">診断士IDを入力してください</div>'; return; }
+            el('regMsg').innerHTML = '<div class="loading-text" style="text-align:center;padding:10px">登録中...</div>';
+            callApi('apiLinkDiagnostician', { line_user_id: STATE.line_user_id, diag_id: id }, (res) => {
+                if (!res.ok) { el('regMsg').innerHTML = `<div class="msg-error">${esc(res.error)}</div>`; return; }
+                STATE.role = 'diagnostician'; STATE.diag_id = res.diag_id;
+                setBadge('診断士');
+                hide('screenRegister'); show('screenDiag');
+                initDiagUI();
+                el('regMsg').innerHTML = '';
+                showToast(`${res.diag_name} として登録しました ✅`);
+            });
+        }
+
+        /* ========== スタッフUI ========== */
+        function initStaffUI() {
+            const tomorrow = new Date();
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            el('searchDate').value = fmtDate(tomorrow);
+            el('changeDate').value = fmtDate(tomorrow);
+            resetNewBooking();
+        }
+
+        function switchStaffTab(tab) {
+            const tabs = document.querySelectorAll('#staffTabs .tab');
+            tabs.forEach(t => t.classList.remove('active'));
+            if (tab === 'new') {
+                tabs[0].classList.add('active');
+                show('staffNew'); hide('staffList');
+            } else {
+                tabs[1].classList.add('active');
+                hide('staffNew'); show('staffList');
+                doListBookings();
+            }
+        }
+
+        /* --- 新規予約フロー --- */
+        function resetNewBooking() {
+            STATE.step_type = ''; STATE.parent_booking_id = ''; STATE.preferred_diag_id = '';
+            STATE.customer = {}; STATE.selectedSlot = null; STATE.selectedDiagId = ''; STATE.selectedDiagName = '';
+            show('stepSelect');
+            hide('step2ParentSearch'); hide('custInfo'); hide('dateSearch'); hide('confirmArea');
+            el('slotsArea').innerHTML = ''; hide('btnFallback');
+        }
+
+        function startStep(step) {
+            STATE.step_type = step;
+            STATE.parent_booking_id = '';
+            STATE.preferred_diag_id = '';
+            hide('stepSelect');
+            show('custInfo');
+            el('custStepLabel').textContent = step === 'STEP1' ? '📋 STEP1 初回診断' : '🔄 STEP2 フォロー診断';
+            el('custName').value = ''; el('custPhone').value = '';
+            el('custGender').value = ''; el('custAge').value = '';
+        }
+
+        function startStep2Search() {
+            STATE.step_type = 'STEP2';
+            hide('stepSelect');
+            show('step2ParentSearch');
+            el('s2Phone').value = ''; el('s2ParentList').innerHTML = ''; el('s2Msg').innerHTML = '';
+        }
+
+        function doFindParent() {
+            const phone = el('s2Phone').value.trim();
+            if (!phone) { el('s2Msg').innerHTML = '<div class="msg-error">電話番号を入力してください</div>'; return; }
+            el('s2Msg').innerHTML = '<div class="loading-text" style="text-align:center;padding:10px">検索中...</div>';
+            callApi('apiFindParentStep1', { line_user_id: STATE.line_user_id, customer_phone: phone }, (res) => {
+                el('s2Msg').innerHTML = '';
+                if (!res.ok) { el('s2Msg').innerHTML = `<div class="msg-error">${esc(res.error)}</div>`; return; }
+                if (res.parents.length === 0) {
+                    el('s2ParentList').innerHTML = '<div class="msg-warn">該当するSTEP1が見つかりません</div>';
+                    return;
+                }
+                let h = '<p style="font-size:.85rem;color:#555;margin:8px 0 4px">親STEP1を選択してください:</p>';
+                for (const p of res.parents) {
+                    const dt = fmtDt(p.start_at);
+                    h += `<button class="slot-btn" onclick="selectParent('${esc(p.booking_id)}','${esc(p.diag_id)}','${esc(p.customer_name)}','${esc(p.customer_phone)}')">`
+                        + `👤 ${esc(p.customer_name)} / ${dt}<br><small style="font-weight:normal">診断士: ${esc(p.diag_name)}</small></button>`;
+                }
+                el('s2ParentList').innerHTML = h;
+            });
+        }
+
+        function selectParent(bookingId, diagId, custName, custPhone) {
+            STATE.parent_booking_id = bookingId;
+            STATE.preferred_diag_id = diagId;
+            hide('step2ParentSearch');
+            show('custInfo');
+            el('custStepLabel').textContent = '🔄 STEP2 フォロー診断（同一診断士優先）';
+            el('custName').value = custName;
+            el('custPhone').value = custPhone;
+        }
+
+        function goToDateInput() {
+            const name = el('custName').value.trim();
+            const phone = el('custPhone').value.trim();
+            if (!name || !phone) { showToast('顧客名と電話番号は必須です', true); return; }
+            STATE.customer = {
+                name, phone,
+                gender: el('custGender').value,
+                age: el('custAge').value
+            };
+            hide('custInfo');
+            show('dateSearch');
+            el('slotsArea').innerHTML = '';
+            hide('btnFallback');
+            hide('confirmArea');
+        }
+
+        function doSearchSlots() {
+            const ymd = el('searchDate').value;
+            if (!ymd) { showToast('基準日を選択してください', true); return; }
+            el('slotsArea').innerHTML = '<div class="loading-text" style="text-align:center;padding:16px"><div class="spinner" style="margin:0 auto 8px"></div>検索中...</div>';
+            hide('btnFallback');
+            const payload = {
+                line_user_id: STATE.line_user_id,
+                step_type: STATE.step_type,
+                date_ymd: ymd,
+                parent_booking_id: STATE.parent_booking_id || '',
+                allow_fallback: false,
+            };
+            callApi('apiSearchSlots', payload, (res) => {
+                if (!res.ok) { el('slotsArea').innerHTML = `<div class="msg-error">${esc(res.error)}</div>`; return; }
+                if (res.mode === 'no_preferred_slot') {
+                    el('slotsArea').innerHTML = '<div class="msg-warn">同一診断士の空きがありません</div>';
+                    show('btnFallback');
+                    return;
+                }
+                renderSlots(res.results, 'slotsArea');
+                if (res.results.length === 0) {
+                    el('slotsArea').innerHTML = '<div class="msg-warn">空きがありません。別の日付をお試しください。</div>';
+                }
+            });
+        }
+
+        function doSearchFallback() {
+            const ymd = el('searchDate').value;
+            el('slotsArea').innerHTML = '<div class="loading-text" style="text-align:center;padding:16px"><div class="spinner" style="margin:0 auto 8px"></div>検索中...</div>';
+            hide('btnFallback');
+            const payload = {
+                line_user_id: STATE.line_user_id,
+                step_type: STATE.step_type,
+                date_ymd: ymd,
+                parent_booking_id: STATE.parent_booking_id || '',
+                allow_fallback: true,
+            };
+            callApi('apiSearchSlots', payload, (res) => {
+                if (!res.ok) { el('slotsArea').innerHTML = `<div class="msg-error">${esc(res.error)}</div>`; return; }
+                renderSlots(res.results, 'slotsArea');
+                if (res.results.length === 0) {
+                    el('slotsArea').innerHTML = '<div class="msg-warn">空きがありません。</div>';
+                }
+            });
+        }
+
+        function renderSlots(results, targetId) {
+            let h = '';
+            for (const group of results) {
+                h += `<div class="diag-group"><div class="diag-group-title">👨‍⚕️ ${esc(group.diag_name)}</div>`;
+                for (const s of group.slots) {
+                    const lbl = fmtDt(s.start_at) + ' 〜 ' + fmtTime(s.end_at);
+                    h += `<button class="slot-btn" data-iso="${esc(s.start_at)}" data-did="${esc(group.diag_id)}" data-dn="${esc(group.diag_name)}" onclick="pickSlot(this)">🕐 ${lbl}</button>`;
+                }
+                h += '</div>';
+            }
+            el(targetId).innerHTML = h;
+        }
+
+        function pickSlot(btn) {
+            document.querySelectorAll('#slotsArea .slot-btn').forEach(b => b.classList.remove('selected'));
+            btn.classList.add('selected');
+            STATE.selectedSlot = btn.dataset.iso;
+            STATE.selectedDiagId = btn.dataset.did;
+            STATE.selectedDiagName = btn.dataset.dn;
+            show('confirmArea');
+            const dt = fmtDt(STATE.selectedSlot);
+            el('confirmDetail').innerHTML = `
+<table class="confirm-table">
+  <tr><td>種別</td><td>${esc(STATE.step_type)}</td></tr>
+  <tr><td>顧客名</td><td>${esc(STATE.customer.name)}</td></tr>
+  <tr><td>電話</td><td>${esc(STATE.customer.phone)}</td></tr>
+  <tr><td>診断士</td><td>${esc(STATE.selectedDiagName)}</td></tr>
+  <tr><td>日時</td><td>${dt}</td></tr>
+</table>`;
+            el('confirmMsg').innerHTML = '';
+            // 確認エリアへスクロール
+            el('confirmArea').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+
+        function backToSlots() {
+            hide('confirmArea');
+            STATE.selectedSlot = null;
+        }
+
+        function doCreateBooking() {
+            if (!STATE.selectedSlot) { showToast('枠を選択してください', true); return; }
+            el('confirmMsg').innerHTML = '<div class="loading-text" style="text-align:center;padding:10px">予約作成中...</div>';
+            const payload = {
+                line_user_id: STATE.line_user_id,
+                step_type: STATE.step_type,
+                parent_booking_id: STATE.parent_booking_id || '',
+                customer_name: STATE.customer.name,
+                customer_phone: STATE.customer.phone,
+                gender: STATE.customer.gender || '',
+                age: STATE.customer.age || '',
+                diag_id: STATE.selectedDiagId,
+                start_at_iso: STATE.selectedSlot,
+            };
+            callApi('apiCreateBooking', payload, (res) => {
+                if (!res.ok) { el('confirmMsg').innerHTML = `<div class="msg-error">${esc(res.error)}</div>`; return; }
+                el('confirmMsg').innerHTML = `<div class="msg-success">✅ 予約確定: ${esc(res.booking.booking_id)}</div>`;
+                setTimeout(() => resetNewBooking(), 2500);
+            });
+        }
+
+        /* --- 予約一覧 --- */
+        function doListBookings() {
+            const phone = el('listPhone').value.trim();
+            el('bookingsList').innerHTML = '<div class="loading-text" style="text-align:center;padding:16px"><div class="spinner" style="margin:0 auto 8px"></div>読込中...</div>';
+            callApi('apiListBookings', { line_user_id: STATE.line_user_id, q_phone: phone }, (res) => {
+                if (!res.ok) { el('bookingsList').innerHTML = `<div class="msg-error">${esc(res.error)}</div>`; return; }
+                if (res.bookings.length === 0) {
+                    el('bookingsList').innerHTML = '<div class="msg-info">該当する予約がありません</div>';
+                    return;
+                }
+                let h = '';
+                for (const b of res.bookings) {
+                    h += `<div class="booking-item">
+  <div class="bi-name">${esc(b.customer_name)}<span class="bi-step">${esc(b.step_type)}</span></div>
+  <div class="bi-sub">📅 ${fmtDt(b.start_at)}</div>
+  <div class="bi-sub">👨‍⚕️ ${esc(b.diag_name)}</div>
+  <div class="bi-sub">📞 ${esc(b.customer_phone)}</div>
+  <div class="bi-actions">
+    <button class="btn btn-secondary btn-small" onclick="openChange('${esc(b.booking_id)}')">変更</button>
+    <button class="btn btn-danger btn-small" onclick="doCancel('${esc(b.booking_id)}')">キャンセル</button>
+  </div>
+</div>`;
+                }
+                el('bookingsList').innerHTML = h;
+            });
+        }
+
+        /* --- 変更フロー --- */
+        function openChange(bookingId) {
+            STATE.changeBookingId = bookingId;
+            STATE.changeSlot = null;
+            show('changeArea');
+            el('changeInfo').textContent = `変更対象: ${bookingId}`;
+            el('changeSlotsArea').innerHTML = '';
+            hide('btnConfirmChange');
+            el('changeMsg').innerHTML = '';
+            el('changeArea').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        function closeChangeArea() {
+            hide('changeArea');
+            STATE.changeBookingId = '';
+        }
+
+        function doSearchChangeSlots() {
+            const ymd = el('changeDate').value;
+            if (!ymd) { showToast('日付を選択してください', true); return; }
+            el('changeSlotsArea').innerHTML = '<div class="loading-text" style="text-align:center;padding:16px"><div class="spinner" style="margin:0 auto 8px"></div>検索中...</div>';
+            hide('btnConfirmChange');
+            callApi('apiSearchSlotsForChange', {
+                line_user_id: STATE.line_user_id,
+                booking_id: STATE.changeBookingId,
+                date_ymd: ymd,
+            }, (res) => {
+                if (!res.ok) { el('changeSlotsArea').innerHTML = `<div class="msg-error">${esc(res.error)}</div>`; return; }
+                if (res.results.length === 0) {
+                    el('changeSlotsArea').innerHTML = '<div class="msg-warn">空きがありません</div>';
+                    return;
+                }
+                renderChangeSlots(res.results);
+            });
+        }
+
+        function renderChangeSlots(results) {
+            let h = '';
+            for (const group of results) {
+                h += `<div class="diag-group"><div class="diag-group-title">👨‍⚕️ ${esc(group.diag_name)}</div>`;
+                for (const s of group.slots) {
+                    const lbl = fmtDt(s.start_at) + ' 〜 ' + fmtTime(s.end_at);
+                    h += `<button class="slot-btn" data-iso="${esc(s.start_at)}" onclick="pickChangeSlot(this)">🕐 ${lbl}</button>`;
+                }
+                h += '</div>';
+            }
+            el('changeSlotsArea').innerHTML = h;
+        }
+
+        function pickChangeSlot(btn) {
+            document.querySelectorAll('#changeSlotsArea .slot-btn').forEach(b => b.classList.remove('selected'));
+            btn.classList.add('selected');
+            STATE.changeSlot = btn.dataset.iso;
+            show('btnConfirmChange');
+        }
+
+        function doConfirmChange() {
+            if (!STATE.changeSlot) return;
+            el('changeMsg').innerHTML = '<div class="loading-text" style="text-align:center;padding:10px">変更中...</div>';
+            callApi('apiChangeBooking', {
+                line_user_id: STATE.line_user_id,
+                booking_id: STATE.changeBookingId,
+                new_start_at_iso: STATE.changeSlot,
+            }, (res) => {
+                if (!res.ok) { el('changeMsg').innerHTML = `<div class="msg-error">${esc(res.error)}</div>`; return; }
+                el('changeMsg').innerHTML = `<div class="msg-success">✅ 変更完了: ${esc(res.booking.booking_id)}</div>`;
+                setTimeout(() => { closeChangeArea(); doListBookings(); }, 2000);
+            });
+        }
+
+        /* --- キャンセル --- */
+        function doCancel(bookingId) {
+            if (!confirm(`予約 ${bookingId} をキャンセルしますか？`)) return;
+            callApi('apiCancelBooking', { line_user_id: STATE.line_user_id, booking_id: bookingId }, (res) => {
+                if (!res.ok) { showToast(res.error, true); return; }
+                showToast('キャンセルしました');
+                doListBookings();
+            });
+        }
+
+        /* ========== 診断士UI ========== */
+        function initDiagUI() {
+            const sel = el('availTime');
+            sel.innerHTML = '';
+            for (let h = 7; h <= 21; h++) {
+                for (const m of ['00', '30']) {
+                    const v = `${String(h).padStart(2, '0')}:${m}`;
+                    sel.innerHTML += `<option value="${v}">${v}</option>`;
+                }
+            }
+            const tomorrow = new Date();
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            el('availDate').value = fmtDate(tomorrow);
+        }
+
+        function switchDiagTab(tab) {
+            const tabs = document.querySelectorAll('#screenDiag .tab');
+            tabs.forEach(t => t.classList.remove('active'));
+            if (tab === 'add') {
+                tabs[0].classList.add('active');
+                show('diagAdd'); hide('diagList');
+            } else {
+                tabs[1].classList.add('active');
+                hide('diagAdd'); show('diagList');
+                doListAvail();
+            }
+        }
+
+        function doCreateAvail() {
+            const dv = el('availDate').value;
+            const tv = el('availTime').value;
+            const bv = el('availBlocks').value;
+            if (!dv || !tv) { el('availMsg').innerHTML = '<div class="msg-error">日付と時刻を選択してください</div>'; return; }
+            el('availMsg').innerHTML = '<div class="loading-text" style="text-align:center;padding:10px">作成中...</div>';
+            callApi('apiDiagCreateAvail', {
+                line_user_id: STATE.line_user_id,
+                date_ymd: dv,
+                start_hhmm: tv,
+                blocks: bv,
+            }, (res) => {
+                if (!res.ok) { el('availMsg').innerHTML = `<div class="msg-error">${esc(res.error)}</div>`; return; }
+                el('availMsg').innerHTML = `<div class="msg-success">✅ 稼働枠を作成しました</div>`;
+            });
+        }
+
+        function doListAvail() {
+            el('availList').innerHTML = '<div class="loading-text" style="text-align:center;padding:16px"><div class="spinner" style="margin:0 auto 8px"></div>読込中...</div>';
+            callApi('apiDiagListAvail', { line_user_id: STATE.line_user_id }, (res) => {
+                if (!res.ok) { el('availList').innerHTML = `<div class="msg-error">${esc(res.error)}</div>`; return; }
+                if (res.avail.length === 0) {
+                    el('availList').innerHTML = '<div class="msg-info">稼働枠がありません</div>';
+                    return;
+                }
+                let h = '';
+                for (const a of res.avail) {
+                    h += `<div class="avail-item">
+  <div class="avail-time">📅 ${fmtDt(a.start_at)} 〜 ${fmtTime(a.end_at)}</div>
+  <button class="btn btn-danger btn-small" onclick="doDeleteAvail('${esc(a.event_id)}')">削除</button>
+</div>`;
+                }
+                el('availList').innerHTML = h;
+            });
+        }
+
+        function doDeleteAvail(eventId) {
+            if (!confirm('この稼働枠を削除しますか？')) return;
+            callApi('apiDiagDeleteAvail', { line_user_id: STATE.line_user_id, event_id: eventId }, (res) => {
+                if (!res.ok) { showToast(res.error, true); return; }
+                showToast('削除しました');
+                doListAvail();
+            });
+        }
+
+        /* ========== トースト通知 ========== */
+        function showToast(msg, isError = false) {
+            const t = document.createElement('div');
+            t.textContent = msg;
+            Object.assign(t.style, {
+                position: 'fixed',
+                bottom: '24px',
+                left: '50%',
+                transform: 'translateX(-50%)',
+                background: isError ? '#c62828' : '#2e7d32',
+                color: '#fff',
+                padding: '12px 20px',
+                borderRadius: '24px',
+                fontSize: '0.9rem',
+                fontWeight: '600',
+                zIndex: '9999',
+                boxShadow: '0 4px 12px rgba(0,0,0,0.25)',
+                maxWidth: '90vw',
+                textAlign: 'center',
+                transition: 'opacity 0.3s',
+            });
+            document.body.appendChild(t);
+            setTimeout(() => { t.style.opacity = '0'; setTimeout(() => t.remove(), 300); }, 2500);
+        }
+
+        /* ========== API呼び出しユーティリティ (fetch版) ========== */
+        function callApi(fn, payload, cb) {
+            // GAS doPost へ POST する
+            // Content-Type: text/plain でCORSプリフライトを回避
+            fetch(GAS_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                body: JSON.stringify({ action: fn, payload: payload }),
+            })
+                .then(function (res) { return res.json(); })
+                .then(function (data) { cb(data); })
+                .catch(function (err) { cb({ ok: false, error: String(err) }); });
+        }
+
+        /* ========== ヘルパー ========== */
+        function el(id) { return document.getElementById(id); }
+        function show(id) { el(id).classList.remove('hidden'); }
+        function hide(id) { el(id).classList.add('hidden'); }
+
+        function esc(s) {
+            if (s == null) return '';
+            const d = document.createElement('div');
+            d.textContent = String(s);
+            return d.innerHTML;
+        }
+
+        function fmtDate(d) {
+            const y = d.getFullYear();
+            const m = String(d.getMonth() + 1).padStart(2, '0');
+            const dd = String(d.getDate()).padStart(2, '0');
+            return `${y}-${m}-${dd}`;
+        }
+
+        function fmtDt(iso) {
+            const d = new Date(iso);
+            return `${d.getMonth() + 1}/${d.getDate()} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+        }
+
+        function fmtTime(iso) {
+            const d = new Date(iso);
+            return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+        }
+    </script>
+</body>
+
+</html>
