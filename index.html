@@ -9,8 +9,7 @@
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
     <title>MYTONE 予約システム</title>
-    <!-- LIFF SDK: jsDelivr経由 安定版2.22.3 (Invalid LIFF IDデバッグ用) -->
-    <script src="https://cdn.jsdelivr.net/npm/@line/liff@2.22.3/dist/liff.min.js"></script>
+    <!-- LIFF SDK: 動的読み込み（CDNフォールバック対応） -->
     <style>
         /* ========== リセット・ベース ========== */
         *,
@@ -624,13 +623,35 @@
         // GAS デプロイURL（デプロイを管理 → ウェブアプリURL）
         const GAS_URL = 'https://script.google.com/macros/s/AKfycbyJ6RasshdyfQVueQvWu58MIS-ILVXDwxiK-6m4lmCmhV28m_ebOOhwhWLL36yW3JJ-mg/exec';
 
-        // DOM読み込み完了後にLIFF初期化（SDKはサーバー側でインライン展開済み）
+        // LIFF SDK を複数CDNからフォールバック付きで動的読み込み
+        function loadSdk(urls, onSuccess, onFail) {
+            if (urls.length === 0) { onFail(); return; }
+            var s = document.createElement('script');
+            s.src = urls[0];
+            s.onload = onSuccess;
+            s.onerror = function () { loadSdk(urls.slice(1), onSuccess, onFail); };
+            document.head.appendChild(s);
+        }
+
         document.addEventListener('DOMContentLoaded', function () {
-            if (typeof liff === 'undefined') {
-                showStep('⚠️ LIFF SDKが読み込まれていません。ページを再読み込みしてください。', true);
-                return;
-            }
-            initLiff();
+            showStep('LIFF SDK 読み込み中...');
+            loadSdk(
+                [
+                    'https://cdn.jsdelivr.net/npm/@line/liff@2.22.3/dist/liff.min.js',
+                    'https://unpkg.com/@line/liff@2.22.3/dist/liff.min.js',
+                    'https://static.line-scdn.net/liff/edge/2/sdk.js'
+                ],
+                function () {
+                    if (typeof liff === 'undefined') {
+                        showStep('⚠️ LIFF SDKが読み込まれていません。ページを再読み込みしてください。', true);
+                        return;
+                    }
+                    initLiff();
+                },
+                function () {
+                    showStep('⚠️ LIFF SDKの読み込みに失敗しました。ネットワークを確認してください。', true);
+                }
+            );
         });
 
         // ローディング画面にステップメッセージを表示
