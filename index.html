@@ -6,8 +6,8 @@
     <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <title>MYTONE 予約システム</title>
-    <!-- LIFF SDK: CDN直接読み込み (GitHub Pages用) -->
-    <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+    <!-- LIFF SDK: jsDelivr経由 安定版2.22.3 (Invalid LIFF IDデバッグ用) -->
+    <script src="https://cdn.jsdelivr.net/npm/@line/liff@2.22.3/dist/liff.min.js"></script>
     <style>
         /* ========== リセット・ベース ========== */
         *,
@@ -446,7 +446,7 @@
     <div id="screenRegister" class="container hidden">
         <div class="register-hero">
             <div class="icon">👤</div>
-            <p>スタッフまたは診断士として<br>ご登録ください</p>
+            <p>美容室スタッフまたは診断士として<br>ご登録ください</p>
         </div>
         <div class="card">
             <div class="tab-bar">
@@ -455,12 +455,12 @@
             </div>
             <div id="regStaff">
                 <label>店舗コード</label>
-                <input id="regSalonCode" placeholder="例: S001" autocomplete="off">
+                <input id="regSalonCode" placeholder="例: S00001" autocomplete="off">
                 <button class="btn btn-primary" onclick="doLinkSalon()">登録する</button>
             </div>
             <div id="regDiag" class="hidden">
                 <label>診断士ID</label>
-                <input id="regDiagId" placeholder="例: D001" autocomplete="off">
+                <input id="regDiagId" placeholder="例: D00001" autocomplete="off">
                 <button class="btn btn-primary" onclick="doLinkDiag()">登録する</button>
             </div>
             <div id="regMsg"></div>
@@ -661,23 +661,19 @@
                 }
 
                 // STEP 2: liff.init()
-                const shortId = LIFF_ID.substring(0, 6);
-                showStep('ステップ 2/4: LIFF 初期化中... (ID: ' + shortId + '...)');
+                const liffIdTrimmed = LIFF_ID.trim();
+                showStep('ステップ 2/4: LIFF 初期化中... (ID: ' + liffIdTrimmed + ' [len:' + liffIdTrimmed.length + '])');
                 try {
-                    await withTimeout(
-                        liff.init({ liffId: LIFF_ID }),
-                        15000,
-                        'liff.init()'
-                    );
+                    await liff.init({ liffId: liffIdTrimmed });
                 } catch (initErr) {
-                    // init失敗時: 現在URLを表示してエンドポイントURL確認を促す
-                    const currentUrl = location.href.split('?')[0];
+                    // init失敗時: エラーコードとURL詳細を表示
+                    const baseUrl = location.href.split('?')[0].split('#')[0];
+                    const errCode = initErr.code || initErr.errorCode || 'N/A';
                     showStep(
-                        '⚠️ LIFF初期化失敗: ' + (initErr.message || String(initErr))
-                        + '<br><br>【確認事項】<br>'
-                        + 'LINE Developers Console のLIFF設定で<br>'
-                        + '「エンドポイントURL」が以下と一致しているか確認してください:<br>'
-                        + '<small style="word-break:break-all;color:#555">' + currentUrl + '</small>',
+                        '⚠️ LIFF初期化失敗<br>'
+                        + 'メッセージ: ' + (initErr.message || String(initErr)) + '<br>'
+                        + 'コード: ' + errCode + '<br>'
+                        + 'ベースURL: <small style="word-break:break-all">' + baseUrl + '</small>',
                         true
                     );
                     return;
