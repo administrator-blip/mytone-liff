@@ -9,6 +9,9 @@
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
     <title>MYTONE 予約システム</title>
+    <link rel="manifest" href="./manifest.json">
+    <meta name="theme-color" content="#1b5e20">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <!-- LIFF SDK: 動的読み込み（CDNフォールバック対応） -->
     <style>
         /* ========== リセット・ベース ========== */
@@ -1005,6 +1008,302 @@
         body.dark .week-day {
             background: #1a2e1a;
         }
+
+        /* ========== メモ欄 ========== */
+        .memo-area {
+            width: 100%;
+            min-height: 50px;
+            max-height: 100px;
+            padding: 8px 10px;
+            border: 1.5px solid #bbb;
+            border-radius: 10px;
+            font-size: 0.9rem;
+            resize: vertical;
+            font-family: inherit;
+        }
+
+        .memo-area:focus {
+            border-color: #2e7d32;
+            outline: none;
+        }
+
+        .bi-memo {
+            font-size: 0.78rem;
+            color: #666;
+            margin-top: 2px;
+            white-space: pre-wrap;
+        }
+
+        /* ========== フィルタバー ========== */
+        .filter-bar {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+        }
+
+        .filter-chip {
+            padding: 5px 12px;
+            border-radius: 20px;
+            border: 1.5px solid #2e7d32;
+            background: #fff;
+            color: #2e7d32;
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+
+        .filter-chip.active {
+            background: #2e7d32;
+            color: #fff;
+        }
+
+        .sort-btn {
+            margin-left: auto;
+            padding: 5px 10px;
+            border-radius: 20px;
+            border: 1.5px solid #888;
+            background: #fff;
+            color: #555;
+            font-size: 0.78rem;
+            cursor: pointer;
+        }
+
+        /* ========== 長押しメニュー ========== */
+        .ctx-menu {
+            position: fixed;
+            z-index: 2000;
+            background: #fff;
+            border-radius: 14px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.22);
+            min-width: 180px;
+            padding: 6px 0;
+            display: none;
+        }
+
+        .ctx-menu.show {
+            display: block;
+            animation: fadeScale 0.15s ease;
+        }
+
+        @keyframes fadeScale {
+            from {
+                opacity: 0;
+                transform: scale(0.92);
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .ctx-item {
+            display: block;
+            width: 100%;
+            padding: 12px 18px;
+            border: none;
+            background: none;
+            text-align: left;
+            font-size: 0.9rem;
+            cursor: pointer;
+            color: #333;
+        }
+
+        .ctx-item:active {
+            background: #f0f0f0;
+        }
+
+        .ctx-item.danger {
+            color: #e53935;
+        }
+
+        .ctx-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 1999;
+            display: none;
+        }
+
+        .ctx-overlay.show {
+            display: block;
+        }
+
+        /* ========== フォントサイズ切替 ========== */
+        .font-toggle {
+            position: absolute;
+            top: 50%;
+            right: 52px;
+            transform: translateY(-50%);
+            background: rgba(255, 255, 255, 0.18);
+            border: none;
+            color: #fff;
+            border-radius: 50%;
+            width: 32px;
+            height: 32px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        body.font-lg {
+            font-size: 18px !important;
+        }
+
+        body.font-lg .card-title {
+            font-size: 1.05rem;
+        }
+
+        body.font-lg .bi-sub {
+            font-size: 0.88rem;
+        }
+
+        /* ========== Confetti アニメーション ========== */
+        .confetti-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 9999;
+            overflow: hidden;
+        }
+
+        .confetti-piece {
+            position: absolute;
+            top: -20px;
+            width: 10px;
+            height: 10px;
+            border-radius: 2px;
+            animation: confettiFall 1.8s ease-in forwards;
+        }
+
+        @keyframes confettiFall {
+            0% {
+                transform: translateY(0) rotate(0deg);
+                opacity: 1;
+            }
+
+            100% {
+                transform: translateY(100vh) rotate(720deg);
+                opacity: 0;
+            }
+        }
+
+        /* ========== 稼働枠カレンダー（診断士） ========== */
+        .avail-cal {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 3px;
+            margin-bottom: 12px;
+        }
+
+        .avail-cal-head {
+            text-align: center;
+            font-size: 0.7rem;
+            font-weight: 700;
+            color: #555;
+            padding: 4px 0;
+        }
+
+        .avail-cal-cell {
+            text-align: center;
+            padding: 6px 2px;
+            border-radius: 8px;
+            font-size: 0.78rem;
+            background: #f5f5f5;
+            min-height: 38px;
+        }
+
+        .avail-cal-cell.has-avail {
+            background: #c8e6c9;
+            font-weight: 700;
+            color: #1b5e20;
+        }
+
+        .avail-cal-cell.today {
+            border: 2px solid #2e7d32;
+        }
+
+        .avail-cal-cell .ac-count {
+            font-size: 0.65rem;
+            color: #2e7d32;
+        }
+
+        .avail-cal-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .avail-cal-nav span {
+            font-weight: 700;
+            font-size: 0.95rem;
+        }
+
+        /* ========== オフラインバナー ========== */
+        .offline-banner {
+            background: #ff9800;
+            color: #fff;
+            text-align: center;
+            padding: 8px;
+            font-size: 0.82rem;
+            font-weight: 600;
+            display: none;
+        }
+
+        .offline-banner.show {
+            display: block;
+        }
+
+        /* ========== ダークモード追加分 ========== */
+        body.dark .memo-area {
+            background: #2c2c2c;
+            border-color: #555;
+            color: #eee;
+        }
+
+        body.dark .filter-chip {
+            background: #2c2c2c;
+            color: #81c784;
+            border-color: #81c784;
+        }
+
+        body.dark .filter-chip.active {
+            background: #1b5e20;
+            color: #fff;
+        }
+
+        body.dark .sort-btn {
+            background: #2c2c2c;
+            border-color: #666;
+            color: #ccc;
+        }
+
+        body.dark .ctx-menu {
+            background: #2c2c2c;
+        }
+
+        body.dark .ctx-item {
+            color: #eee;
+        }
+
+        body.dark .ctx-item:active {
+            background: #383838;
+        }
+
+        body.dark .avail-cal-cell {
+            background: #2c2c2c;
+            color: #ccc;
+        }
+
+        body.dark .avail-cal-cell.has-avail {
+            background: #1a3d1a;
+            color: #81c784;
+        }
     </style>
 </head>
 
@@ -1015,8 +1314,12 @@
         <h1>MYTONE 予約システム</h1>
         <div id="salonBadge" class="salon-badge hidden"></div>
         <div id="roleBadge" class="role-badge hidden"></div>
+        <button class="font-toggle" onclick="toggleFontSize()">Aa</button>
         <button class="dark-toggle" onclick="toggleDarkMode()">&#127769;</button>
     </div>
+
+    <!-- オフラインバナー -->
+    <div id="offlineBanner" class="offline-banner">⚠️ オフラインです。最後に取得したデータを表示しています。</div>
 
     <!-- プルトゥリフレッシュインジケーター -->
     <div id="pullIndicator">&#8595; 引っ張って更新</div>
@@ -1106,6 +1409,8 @@
                 </select>
                 <label>年齢</label>
                 <input id="custAge" type="number" placeholder="30" min="0" max="120">
+                <label>メモ（任意）</label>
+                <textarea id="custMemo" class="memo-area" placeholder="例: カラー希望、前回の相談内容など"></textarea>
                 <button class="btn btn-primary" onclick="goToDateInput()" style="margin-top:14px">次へ: 日にち選択 →</button>
                 <button class="btn btn-outline" onclick="resetNewBooking()" style="margin-top:8px">← 戻る</button>
                 <button class="btn btn-secondary" onclick="doViewHistory()" style="margin-top:8px;font-size:0.82rem">📞
@@ -1165,8 +1470,17 @@
             </div>
             <div class="card">
                 <div class="card-title">予約一覧（本日以降）</div>
+                <div class="filter-bar">
+                    <button class="filter-chip active" onclick="setFilter('all',this)">全件</button>
+                    <button class="filter-chip" onclick="setFilter('confirmed',this)">✅ 確定</button>
+                    <button class="filter-chip" onclick="setFilter('changed',this)">🔄 変更済</button>
+                    <button class="filter-chip" onclick="setFilter('canceled',this)">❌ キャンセル</button>
+                    <button class="sort-btn" onclick="toggleSort()" id="sortBtn">▲ 日付順</button>
+                </div>
                 <label>電話番号で絞り込み（任意）</label>
                 <input id="listPhone" type="tel" placeholder="09012345678">
+                <label>顧客名で絞り込み（任意）</label>
+                <input id="listName" type="text" placeholder="山田 太郎">
                 <button class="btn btn-secondary" onclick="doListBookings()" style="margin-top:10px">🔍 検索</button>
                 <div id="bookingsList" style="margin-top:12px"></div>
             </div>
@@ -1229,7 +1543,14 @@
         <div id="diagList" class="hidden">
             <div class="card">
                 <div class="card-title">稼働枠一覧（2週間）</div>
-                <button class="btn btn-secondary" onclick="doListAvail()">🔄 更新</button>
+                <!-- 稼働枠カレンダービュー -->
+                <div class="avail-cal-nav">
+                    <button class="btn-nav" onclick="shiftAvailCalMonth(-1)">◄</button>
+                    <span id="availCalTitle"></span>
+                    <button class="btn-nav" onclick="shiftAvailCalMonth(1)">►</button>
+                </div>
+                <div id="availCalGrid" class="avail-cal"></div>
+                <button class="btn btn-secondary" onclick="doListAvail()">🔄 一覧更新</button>
                 <div id="availList" style="margin-top:12px"></div>
             </div>
         </div>
@@ -1708,6 +2029,7 @@
                 customer_phone: STATE.customer.phone,
                 gender: STATE.customer.gender || '',
                 age: STATE.customer.age || '',
+                memo: el('custMemo') ? el('custMemo').value.trim() : '',
                 diag_id: STATE.selectedDiagId,
                 start_at_iso: STATE.selectedSlot,
             };
@@ -1717,8 +2039,9 @@
 <button class="btn-retry" onclick="doCreateBooking()">🔄 再試行</button>`;
                     return;
                 }
-                // 成功: ハプティクス + コピーボタン表示
+                // 成功: ハプティクス + confetti + コピーボタン表示
                 if (navigator.vibrate) navigator.vibrate([50, 30, 50]);
+                showConfetti();
                 const bid = res.booking.booking_id;
                 el('sheetConfirmMsg').innerHTML = `
 <div class="msg-success">
@@ -1733,48 +2056,19 @@
         /* --- 予約一覧 --- */
         function doListBookings() {
             const phone = el('listPhone').value.trim();
+            const nameQ = el('listName') ? el('listName').value.trim() : '';
             showSkeleton('bookingsList', 3);
-            callApi('apiListBookings', { line_user_id: STATE.line_user_id, q_phone: phone }, (res) => {
+            callApi('apiListBookings', { line_user_id: STATE.line_user_id, q_phone: phone, q_name: nameQ }, (res) => {
                 if (!res.ok) {
                     el('bookingsList').innerHTML = `<div class="msg-error">${esc(res.error)}</div>
 <button class="btn-retry" onclick="doListBookings()">🔄 再試行</button>`;
                     return;
                 }
-                if (res.bookings.length === 0) {
-                    el('bookingsList').innerHTML = '<div class="msg-info">該当する予約がありません</div>';
-                    return;
-                }
-                // 日付近接度の判定基準
-                const now = new Date();
-                const todayStr = fmtDate(now);
-                const tomorrow = new Date(now); tomorrow.setDate(tomorrow.getDate() + 1);
-                const tomorrowStr = fmtDate(tomorrow);
-                const weekLater = new Date(now); weekLater.setDate(weekLater.getDate() + 7);
-                let h = '';
-                for (const b of res.bookings) {
-                    const startDate = new Date(b.start_at);
-                    const startDateStr = fmtDate(startDate);
-                    let dotCls = 'dot-later', dateCls = 'bi-date-later';
-                    if (startDateStr === todayStr) { dotCls = 'dot-today'; dateCls = 'bi-date-today'; }
-                    else if (startDateStr === tomorrowStr) { dotCls = 'dot-tomorrow'; dateCls = 'bi-date-tomorrow'; }
-                    else if (startDate <= weekLater) { dotCls = 'dot-week'; dateCls = 'bi-date-week'; }
-                    // STEP1の場合はSTEP2予約ボタンを表示
-                    const step2Btn = b.step_type === 'STEP1'
-                        ? `<button class="btn btn-outline btn-small" onclick="startStep2FromBooking('${esc(b.booking_id)}','${esc(b.diag_id)}','${esc(b.customer_name)}','${esc(b.customer_phone)}')">&#x1f504; STEP2予約</button>`
-                        : '';
-                    h += `<div class="booking-item">
-  <div class="bi-name">${esc(b.customer_name)}<span class="bi-step">${esc(b.step_type)}</span></div>
-  <div class="bi-sub ${dateCls}"><span class="urgency-dot ${dotCls}"></span>📅 ${fmtDt(b.start_at)}</div>
-  <div class="bi-sub">👨‍⚕️ ${esc(b.diag_name)}</div>
-  <div class="bi-sub">📞 ${esc(b.customer_phone)}</div>
-  <div class="bi-actions">
-    <button class="btn btn-secondary btn-small" onclick="openChange('${esc(b.booking_id)}')">変更</button>
-    <button class="btn btn-danger btn-small" onclick="doCancel('${esc(b.booking_id)}')">キャンセル</button>
-    ${step2Btn}
-  </div>
-</div>`;
-                }
-                el('bookingsList').innerHTML = h;
+                // キャッシュ保存（オフライン用）
+                _cachedBookings = res.bookings || [];
+                try { localStorage.setItem('mytone_bookings_cache', JSON.stringify(_cachedBookings)); } catch (e) { }
+                // フィルタ＆ソートして描画
+                renderFilteredBookings();
             });
         }
 
@@ -2100,6 +2394,8 @@
             el('availList').innerHTML = '<div class="loading-text" style="text-align:center;padding:16px"><div class="spinner" style="margin:0 auto 8px"></div>読込中...</div>';
             callApi('apiDiagListAvail', { line_user_id: STATE.line_user_id }, (res) => {
                 if (!res.ok) { el('availList').innerHTML = `<div class="msg-error">${esc(res.error)}</div>`; return; }
+                // 稼働枠カレンダーを更新
+                renderAvailCalendar(res.avail);
                 if (res.avail.length === 0) {
                     el('availList').innerHTML = '<div class="msg-info">稼働枠がありません</div>';
                     return;
@@ -2191,7 +2487,250 @@
             const d = new Date(iso);
             return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
         }
+
+        /* ========== 10. フォントサイズ切替 ========== */
+        function toggleFontSize() {
+            document.body.classList.toggle('font-lg');
+            localStorage.setItem('mytone_font', document.body.classList.contains('font-lg') ? 'lg' : '');
+        }
+        // 初期化時に復元
+        if (localStorage.getItem('mytone_font') === 'lg') document.body.classList.add('font-lg');
+
+        /* ========== 2. フィルタ・ソート ========== */
+        let _filterStatus = 'all';
+        let _sortAsc = true;
+        let _cachedBookings = [];
+
+        function setFilter(status, btn) {
+            _filterStatus = status;
+            document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+            btn.classList.add('active');
+            renderFilteredBookings();
+        }
+        function toggleSort() {
+            _sortAsc = !_sortAsc;
+            el('sortBtn').textContent = _sortAsc ? '▲ 日付順' : '▼ 日付逆順';
+            renderFilteredBookings();
+        }
+        function renderFilteredBookings() {
+            let list = [..._cachedBookings];
+            // ステータスフィルタ
+            if (_filterStatus === 'confirmed') list = list.filter(b => b.status === 'CONFIRMED');
+            else if (_filterStatus === 'changed') list = list.filter(b => b.status === 'CHANGED');
+            else if (_filterStatus === 'canceled') list = list.filter(b => b.status === 'CANCELED');
+            // ソート
+            list.sort((a, b) => {
+                const da = new Date(a.start_at), db = new Date(b.start_at);
+                return _sortAsc ? da - db : db - da;
+            });
+            renderBookingCards(list);
+        }
+
+        /* ========== 予約カードレンダリング（共通化） ========== */
+        function renderBookingCards(bookings) {
+            if (bookings.length === 0) {
+                el('bookingsList').innerHTML = '<div class="msg-info">該当する予約がありません</div>';
+                return;
+            }
+            const now = new Date();
+            const todayStr = fmtDate(now);
+            const tomorrow = new Date(now); tomorrow.setDate(tomorrow.getDate() + 1);
+            const tomorrowStr = fmtDate(tomorrow);
+            const weekLater = new Date(now); weekLater.setDate(weekLater.getDate() + 7);
+            let h = '';
+            for (const b of bookings) {
+                const startDate = new Date(b.start_at);
+                const startDateStr = fmtDate(startDate);
+                let dotCls = 'dot-later', dateCls = 'bi-date-later';
+                if (startDateStr === todayStr) { dotCls = 'dot-today'; dateCls = 'bi-date-today'; }
+                else if (startDateStr === tomorrowStr) { dotCls = 'dot-tomorrow'; dateCls = 'bi-date-tomorrow'; }
+                else if (startDate <= weekLater) { dotCls = 'dot-week'; dateCls = 'bi-date-week'; }
+                const step2Btn = b.step_type === 'STEP1' && b.status !== 'CANCELED'
+                    ? `<button class="btn btn-outline btn-small" onclick="startStep2FromBooking('${esc(b.booking_id)}','${esc(b.diag_id)}','${esc(b.customer_name)}','${esc(b.customer_phone)}')">&#x1f504; STEP2予約</button>`
+                    : '';
+                const reBookBtn = `<button class="btn btn-outline btn-small" onclick="quickRebook('${esc(b.customer_name)}','${esc(b.customer_phone)}','${esc(b.gender || '')}','${esc(b.age || '')}')">📋 再予約</button>`;
+                const memoLine = b.memo ? `<div class="bi-memo">💬 ${esc(b.memo)}</div>` : '';
+                const statusBadge = b.status === 'CANCELED' ? ' <span style="color:#e53935;font-size:0.75rem">キャンセル済</span>' : '';
+                h += `<div class="booking-item" data-bid="${esc(b.booking_id)}"
+  ontouchstart="ctxTouchStart(event,this)" ontouchend="ctxTouchEnd()" ontouchmove="ctxTouchEnd()"
+  oncontextmenu="openCtxMenu(event,'${esc(b.booking_id)}','${esc(b.customer_name)}','${esc(b.customer_phone)}','${esc(b.gender || '')}','${esc(b.age || '')}');return false">
+  <div class="bi-name">${esc(b.customer_name)}<span class="bi-step">${esc(b.step_type)}</span>${statusBadge}</div>
+  <div class="bi-sub ${dateCls}"><span class="urgency-dot ${dotCls}"></span>📅 ${fmtDt(b.start_at)}</div>
+  <div class="bi-sub">👨‍⚕️ ${esc(b.diag_name)}</div>
+  <div class="bi-sub">📞 ${esc(b.customer_phone)}</div>
+  ${memoLine}
+  <div class="bi-actions">
+    <button class="btn btn-secondary btn-small" onclick="openChange('${esc(b.booking_id)}')">変更</button>
+    <button class="btn btn-danger btn-small" onclick="doCancel('${esc(b.booking_id)}')">キャンセル</button>
+    ${step2Btn}
+    ${reBookBtn}
+  </div>
+</div>`;
+            }
+            el('bookingsList').innerHTML = h;
+        }
+
+        /* ========== 4. クイック再予約 ========== */
+        function quickRebook(name, phone, gender, age) {
+            // 新規予約タブに切り替え
+            switchStaffTab('new');
+            startStep('STEP1');
+            // 顧客情報を自動入力
+            setTimeout(() => {
+                el('custName').value = name;
+                el('custPhone').value = phone;
+                if (gender) el('custGender').value = gender;
+                if (age) el('custAge').value = age;
+                showToast('顧客情報を引き継ぎました');
+            }, 100);
+        }
+
+        /* ========== 6. 長押しコンテキストメニュー ========== */
+        let _ctxTimer = null;
+        let _ctxData = {};
+
+        function ctxTouchStart(e, elem) {
+            _ctxTimer = setTimeout(() => {
+                const bid = elem.dataset.bid;
+                const touch = e.touches[0];
+                openCtxMenuAt(touch.clientX, touch.clientY, bid, '', '', '', '');
+            }, 500);
+        }
+        function ctxTouchEnd() {
+            clearTimeout(_ctxTimer);
+        }
+        function openCtxMenu(e, bid, name, phone, gender, age) {
+            e.preventDefault();
+            _ctxData = { bid, name, phone, gender, age };
+            openCtxMenuAt(e.clientX || e.pageX, e.clientY || e.pageY, bid, name, phone, gender, age);
+        }
+        function openCtxMenuAt(x, y, bid, name, phone, gender, age) {
+            _ctxData = { bid, name, phone, gender, age };
+            const menu = el('ctxMenu');
+            const overlay = el('ctxOverlay');
+            // 画面はみ出し防止
+            const mw = 200, mh = 220;
+            const left = Math.min(x, window.innerWidth - mw);
+            const top = Math.min(y, window.innerHeight - mh);
+            menu.style.left = left + 'px';
+            menu.style.top = top + 'px';
+            menu.classList.add('show');
+            overlay.classList.add('show');
+            if (navigator.vibrate) navigator.vibrate(30);
+        }
+        function closeCtxMenu() {
+            el('ctxMenu').classList.remove('show');
+            el('ctxOverlay').classList.remove('show');
+        }
+        function ctxAction(action) {
+            closeCtxMenu();
+            switch (action) {
+                case 'change': openChange(_ctxData.bid); break;
+                case 'cancel': doCancel(_ctxData.bid); break;
+                case 'copy': copyId(_ctxData.bid); break;
+                case 'rebook': quickRebook(_ctxData.name, _ctxData.phone, _ctxData.gender, _ctxData.age); break;
+            }
+        }
+
+        /* ========== 11. Confetti アニメーション ========== */
+        function showConfetti() {
+            const colors = ['#1b5e20', '#4caf50', '#81c784', '#ffeb3b', '#ff9800', '#e91e63', '#2196f3'];
+            const container = document.createElement('div');
+            container.className = 'confetti-container';
+            for (let i = 0; i < 40; i++) {
+                const piece = document.createElement('div');
+                piece.className = 'confetti-piece';
+                piece.style.left = Math.random() * 100 + '%';
+                piece.style.background = colors[Math.floor(Math.random() * colors.length)];
+                piece.style.animationDelay = Math.random() * 0.8 + 's';
+                piece.style.animationDuration = (1.2 + Math.random() * 1) + 's';
+                piece.style.width = (6 + Math.random() * 8) + 'px';
+                piece.style.height = (6 + Math.random() * 8) + 'px';
+                container.appendChild(piece);
+            }
+            document.body.appendChild(container);
+            setTimeout(() => container.remove(), 3000);
+        }
+
+        /* ========== 8. 稼働枠カレンダー表示（診断士側） ========== */
+        let _availCalDate = new Date();
+
+        function shiftAvailCalMonth(offset) {
+            _availCalDate.setMonth(_availCalDate.getMonth() + offset);
+            renderAvailCalendar();
+        }
+
+        function renderAvailCalendar(availData) {
+            const calGrid = el('availCalGrid');
+            const calTitle = el('availCalTitle');
+            if (!calGrid || !calTitle) return;
+
+            const year = _availCalDate.getFullYear();
+            const month = _availCalDate.getMonth();
+            calTitle.textContent = `${year}年${month + 1}月`;
+
+            const DOW = ['日', '月', '火', '水', '木', '金', '土'];
+            let h = DOW.map(d => `<div class="avail-cal-head">${d}</div>`).join('');
+
+            const firstDay = new Date(year, month, 1).getDay();
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+            const todayStr = fmtDate(new Date());
+
+            // 稼働枠データから日ごとのカウント集計
+            const countMap = {};
+            if (availData) {
+                for (const a of availData) {
+                    const d = a.start_at ? a.start_at.substring(0, 10) : '';
+                    if (d) countMap[d] = (countMap[d] || 0) + 1;
+                }
+            }
+
+            // 空白セル
+            for (let i = 0; i < firstDay; i++) h += '<div class="avail-cal-cell"></div>';
+
+            for (let d = 1; d <= daysInMonth; d++) {
+                const ymd = `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+                const cnt = countMap[ymd] || 0;
+                let cls = 'avail-cal-cell';
+                if (cnt > 0) cls += ' has-avail';
+                if (ymd === todayStr) cls += ' today';
+                h += `<div class="${cls}"><div>${d}</div>${cnt > 0 ? `<div class="ac-count">${cnt}枠</div>` : ''}</div>`;
+            }
+
+            calGrid.innerHTML = h;
+        }
+
+        /* ========== 12. オフライン表示 ========== */
+        window.addEventListener('online', () => {
+            el('offlineBanner').classList.remove('show');
+        });
+        window.addEventListener('offline', () => {
+            el('offlineBanner').classList.add('show');
+            // キャッシュから表示を試みる
+            const cached = localStorage.getItem('mytone_bookings_cache');
+            if (cached) {
+                try {
+                    const data = JSON.parse(cached);
+                    _cachedBookings = data;
+                    renderFilteredBookings();
+                } catch (e) { /* ignore */ }
+            }
+        });
+
+        /* ========== 9. PWA対応 ========== */
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('./sw.js').catch(() => { });
+        }
     </script>
+
+    <!-- コンテキストメニュー（長押し用） -->
+    <div id="ctxOverlay" class="ctx-overlay" onclick="closeCtxMenu()"></div>
+    <div id="ctxMenu" class="ctx-menu">
+        <button class="ctx-item" onclick="ctxAction('change')">✏️ 変更</button>
+        <button class="ctx-item" onclick="ctxAction('copy')">📋 IDコピー</button>
+        <button class="ctx-item" onclick="ctxAction('rebook')">🔁 再予約</button>
+        <button class="ctx-item danger" onclick="ctxAction('cancel')">❌ キャンセル</button>
+    </div>
 </body>
 
 </html>
