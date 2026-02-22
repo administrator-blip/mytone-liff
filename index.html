@@ -421,9 +421,589 @@
             margin-bottom: 8px;
         }
 
-        .register-hero p {
-            font-size: 0.88rem;
+        /* ========== 日付ナビゲーション ========== */
+        .date-nav {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-top: 4px;
+        }
+
+        .date-nav input[type="date"] {
+            flex: 1;
+            margin-top: 0;
+        }
+
+        .btn-nav {
+            flex-shrink: 0;
+            width: 40px;
+            height: 46px;
+            border: 1.5px solid #a5d6a7;
+            border-radius: 10px;
+            background: #f1f8e9;
+            color: #2e7d32;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+
+        .btn-nav:active {
+            background: #c8e6c9;
+        }
+
+        /* ========== ボトムシート ========== */
+        .sheet-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.45);
+            z-index: 200;
+            opacity: 0;
+            transition: opacity 0.25s;
+        }
+
+        .sheet-overlay.show {
+            display: block;
+            opacity: 1;
+        }
+
+        .bottom-sheet {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: #fff;
+            border-radius: 20px 20px 0 0;
+            padding: 8px 16px calc(env(safe-area-inset-bottom) + 24px);
+            box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.18);
+            z-index: 201;
+            transform: translateY(100%);
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            max-height: 88vh;
+            overflow-y: auto;
+        }
+
+        .bottom-sheet.show {
+            transform: translateY(0);
+        }
+
+        .sheet-handle {
+            width: 36px;
+            height: 4px;
+            background: #ddd;
+            border-radius: 2px;
+            margin: 0 auto 14px;
+        }
+
+        .sheet-title {
+            font-size: 1rem;
+            font-weight: 700;
+            color: #1b5e20;
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #e8f5e9;
+        }
+
+        /* ========== 予約ステータスドット ========== */
+        .urgency-dot {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-right: 5px;
+            vertical-align: middle;
+        }
+
+        .dot-today {
+            background: #e53935;
+        }
+
+        .dot-tomorrow {
+            background: #fb8c00;
+        }
+
+        .dot-week {
+            background: #43a047;
+        }
+
+        .dot-later {
+            background: #b0bec5;
+        }
+
+        .bi-date-today {
+            color: #c62828;
+            font-weight: 700;
+        }
+
+        .bi-date-tomorrow {
+            color: #e65100;
+            font-weight: 600;
+        }
+
+        .bi-date-week {
+            color: #2e7d32;
+        }
+
+        .bi-date-later {
             color: #666;
+        }
+
+        /* ========== コピーボタン ========== */
+        .btn-copy {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 6px 12px;
+            border: 1.5px solid #a5d6a7;
+            border-radius: 8px;
+            background: #f1f8e9;
+            color: #2e7d32;
+            font-size: 0.82rem;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 6px;
+        }
+
+        .btn-copy:active {
+            background: #c8e6c9;
+        }
+
+        /* ========== 今日サマリーバー ========== */
+        .today-summary {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: #e8f5e9;
+            border-radius: 10px;
+            padding: 10px 14px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+
+        .today-summary:active {
+            background: #c8e6c9;
+        }
+
+        .today-summary .ts-count {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #1b5e20;
+        }
+
+        .today-summary .ts-label {
+            font-size: 0.85rem;
+            color: #555;
+            flex: 1;
+        }
+
+        /* ========== 店舗名バッジ（ヘッダー） ========== */
+        .salon-badge {
+            font-size: 0.72rem;
+            color: rgba(255, 255, 255, 0.8);
+            margin-top: 1px;
+        }
+
+        /* ========== ダークモード トグルボタン ========== */
+        .dark-toggle {
+            position: absolute;
+            top: 50%;
+            right: 14px;
+            transform: translateY(-50%);
+            background: rgba(255, 255, 255, 0.15);
+            border: none;
+            border-radius: 50%;
+            width: 32px;
+            height: 32px;
+            font-size: 1rem;
+            cursor: pointer;
+            color: #fff;
+            transition: background 0.2s;
+        }
+
+        .dark-toggle:active {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        /* ========== スケルトンローディング ========== */
+        @keyframes shimmer {
+            0% {
+                background-position: -400px 0;
+            }
+
+            100% {
+                background-position: 400px 0;
+            }
+        }
+
+        .skeleton-item {
+            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+            background-size: 400px 100%;
+            animation: shimmer 1.4s infinite linear;
+            border-radius: 10px;
+            height: 84px;
+            margin-bottom: 10px;
+        }
+
+        .skeleton-line {
+            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+            background-size: 400px 100%;
+            animation: shimmer 1.4s infinite linear;
+            border-radius: 6px;
+            height: 14px;
+            margin-bottom: 8px;
+        }
+
+        .skeleton-line.short {
+            width: 55%;
+        }
+
+        .skeleton-line.medium {
+            width: 75%;
+        }
+
+        /* ========== プルトゥリフレッシュ ========== */
+        #pullIndicator {
+            text-align: center;
+            padding: 10px;
+            font-size: 0.85rem;
+            color: #666;
+            transition: height 0.2s;
+            overflow: hidden;
+            height: 0;
+        }
+
+        #pullIndicator.visible {
+            height: 40px;
+        }
+
+        /* ========== 診断士フィルター ========== */
+        .diag-filter-label {
+            font-size: 0.8rem;
+            color: #555;
+            margin-top: 10px;
+            margin-bottom: 2px;
+        }
+
+        /* ========== 顧客履歴モーダル ========== */
+        #historySheet .history-item {
+            padding: 10px 0;
+            border-bottom: 1px solid #eee;
+            font-size: 0.88rem;
+        }
+
+        #historySheet .history-item:last-child {
+            border-bottom: none;
+        }
+
+        #historySheet .history-step {
+            display: inline-block;
+            font-size: 0.72rem;
+            padding: 1px 7px;
+            border-radius: 10px;
+            background: #e8f5e9;
+            color: #2e7d32;
+            font-weight: 700;
+            margin-left: 5px;
+        }
+
+        /* ========== 管理統計 ========== */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .stat-card {
+            background: #f1f8e9;
+            border-radius: 12px;
+            padding: 12px 10px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 1.7rem;
+            font-weight: 800;
+            color: #1b5e20;
+            line-height: 1;
+        }
+
+        .stat-label {
+            font-size: 0.72rem;
+            color: #555;
+            margin-top: 4px;
+        }
+
+        /* ========== 週間カレンダー ========== */
+        .week-cal {
+            display: flex;
+            gap: 6px;
+            overflow-x: auto;
+            padding-bottom: 4px;
+            margin-top: 8px;
+        }
+
+        .week-day {
+            flex-shrink: 0;
+            width: 44px;
+            border-radius: 10px;
+            background: #f1f8e9;
+            padding: 6px 4px;
+            text-align: center;
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+
+        .week-day:active {
+            background: #c8e6c9;
+        }
+
+        .week-day .wd-date {
+            font-size: 0.65rem;
+            color: #666;
+        }
+
+        .week-day .wd-dow {
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: #1b5e20;
+        }
+
+        .week-day .wd-slots {
+            font-size: 0.65rem;
+            color: #388e3c;
+            margin-top: 3px;
+        }
+
+        .week-day.wd-today {
+            background: #c8e6c9;
+            border: 2px solid #2e7d32;
+        }
+
+        .week-day.wd-selected {
+            background: #2e7d32;
+        }
+
+        .week-day.wd-selected .wd-dow,
+        .week-day.wd-selected .wd-date,
+        .week-day.wd-selected .wd-slots {
+            color: #fff;
+        }
+
+        /* ========== LINEプレビュー ========== */
+        .line-preview {
+            background: #06c755;
+            border-radius: 12px;
+            padding: 10px 12px;
+            margin-top: 10px;
+            color: #fff;
+            font-size: 0.82rem;
+            line-height: 1.6;
+        }
+
+        .line-preview-label {
+            font-size: 0.72rem;
+            color: #666;
+            margin-top: 10px;
+            margin-bottom: 2px;
+            font-weight: 600;
+        }
+
+        /* ========== 再試行ボタン ========== */
+        .btn-retry {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 8px 14px;
+            border: 1.5px solid #e57373;
+            border-radius: 8px;
+            background: #fff;
+            color: #c62828;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 8px;
+        }
+
+        .btn-retry:active {
+            background: #ffebee;
+        }
+
+        /* ========== ダークモード ========== */
+        @media (prefers-color-scheme: dark) {
+            body {
+                background: #121212;
+                color: #e0e0e0;
+            }
+
+            .card {
+                background: #1e1e1e;
+                box-shadow: none;
+                border: 1px solid #333;
+            }
+
+            input,
+            select,
+            textarea {
+                background: #2c2c2c;
+                border-color: #444;
+                color: #e0e0e0;
+            }
+
+            .tab-bar {
+                background: #1e1e1e;
+            }
+
+            .tab {
+                color: #999;
+            }
+
+            .tab.active {
+                color: #66bb6a;
+                border-bottom-color: #66bb6a;
+            }
+
+            .booking-item {
+                border-color: #333;
+            }
+
+            .bi-name {
+                color: #e0e0e0;
+            }
+
+            .bi-sub {
+                color: #aaa;
+            }
+
+            .slot-btn {
+                background: #2c2c2c;
+                border-color: #444;
+                color: #e0e0e0;
+            }
+
+            .slot-btn.selected {
+                background: #1b5e20;
+                border-color: #2e7d32;
+            }
+
+            .diag-group-title {
+                background: #1a2e1a;
+                color: #a5d6a7;
+            }
+
+            .today-summary {
+                background: #1a2e1a;
+            }
+
+            .today-summary .ts-count {
+                color: #81c784;
+            }
+
+            .skeleton-item,
+            .skeleton-line {
+                background: linear-gradient(90deg, #2c2c2c 25%, #383838 50%, #2c2c2c 75%);
+            }
+
+            .bottom-sheet {
+                background: #1e1e1e;
+            }
+
+            .stat-card {
+                background: #1a2e1a;
+            }
+
+            .week-day {
+                background: #1a2e1a;
+            }
+
+            .week-day.wd-today {
+                border-color: #66bb6a;
+                background: #1b3a1b;
+            }
+        }
+
+        /* ダークモード: 手動トグルで追加 */
+        body.dark {
+            background: #121212;
+            color: #e0e0e0;
+        }
+
+        body.dark .card {
+            background: #1e1e1e;
+            box-shadow: none;
+            border: 1px solid #333;
+        }
+
+        body.dark input,
+        body.dark select {
+            background: #2c2c2c;
+            border-color: #444;
+            color: #e0e0e0;
+        }
+
+        body.dark .tab-bar {
+            background: #1e1e1e;
+        }
+
+        body.dark .tab {
+            color: #999;
+        }
+
+        body.dark .tab.active {
+            color: #66bb6a;
+            border-bottom-color: #66bb6a;
+        }
+
+        body.dark .booking-item {
+            border-color: #333;
+        }
+
+        body.dark .bi-name {
+            color: #e0e0e0;
+        }
+
+        body.dark .bi-sub {
+            color: #aaa;
+        }
+
+        body.dark .slot-btn {
+            background: #2c2c2c;
+            border-color: #444;
+            color: #e0e0e0;
+        }
+
+        body.dark .slot-btn.selected {
+            background: #1b5e20;
+            border-color: #2e7d32;
+        }
+
+        body.dark .diag-group-title {
+            background: #1a2e1a;
+            color: #a5d6a7;
+        }
+
+        body.dark .today-summary {
+            background: #1a2e1a;
+        }
+
+        body.dark .skeleton-item,
+        body.dark .skeleton-line {
+            background: linear-gradient(90deg, #2c2c2c 25%, #383838 50%, #2c2c2c 75%);
+            background-size: 400px 100%;
+            animation: shimmer 1.4s infinite linear;
+        }
+
+        body.dark .bottom-sheet {
+            background: #1e1e1e;
+        }
+
+        body.dark .stat-card {
+            background: #1a2e1a;
+        }
+
+        body.dark .week-day {
+            background: #1a2e1a;
         }
     </style>
 </head>
@@ -431,10 +1011,15 @@
 <body>
 
     <!-- ========== ヘッダー ========== -->
-    <div class="app-header">
+    <div class="app-header" style="position:relative">
         <h1>MYTONE 予約システム</h1>
+        <div id="salonBadge" class="salon-badge hidden"></div>
         <div id="roleBadge" class="role-badge hidden"></div>
+        <button class="dark-toggle" onclick="toggleDarkMode()">&#127769;</button>
     </div>
+
+    <!-- プルトゥリフレッシュインジケーター -->
+    <div id="pullIndicator">&#8595; 引っ張って更新</div>
 
     <!-- ========== 初期化中 ========== -->
     <div id="screenLoading" class="container">
@@ -478,6 +1063,12 @@
 
         <!-- 新規予約 -->
         <div id="staffNew">
+            <!-- 今日のサマリーバー -->
+            <div id="todaySummary" class="today-summary hidden" onclick="switchStaffTab('list')">
+                <span>📅</span>
+                <span class="ts-count" id="todayCount">0</span>
+                <span class="ts-label">本日の予約 › 一覧へ</span>
+            </div>
             <!-- Step種別選択 -->
             <div class="card" id="stepSelect">
                 <div class="card-title">予約種別を選択</div>
@@ -504,6 +1095,8 @@
                 <input id="custName" placeholder="山田 太郎">
                 <label>電話番号 <span style="color:#e53935">*</span></label>
                 <input id="custPhone" type="tel" placeholder="09012345678">
+                <!-- 過去顧客名オートフィル提案 -->
+                <div id="custNameSuggest" class="hidden" style="margin-top:4px"></div>
                 <label>性別</label>
                 <select id="custGender">
                     <option value="">未選択</option>
@@ -515,31 +1108,61 @@
                 <input id="custAge" type="number" placeholder="30" min="0" max="120">
                 <button class="btn btn-primary" onclick="goToDateInput()" style="margin-top:14px">次へ: 日にち選択 →</button>
                 <button class="btn btn-outline" onclick="resetNewBooking()" style="margin-top:8px">← 戻る</button>
+                <button class="btn btn-secondary" onclick="doViewHistory()" style="margin-top:8px;font-size:0.82rem">📞
+                    過去の予約を確認</button>
             </div>
 
             <!-- 日付入力＋空き検索 -->
             <div class="card hidden" id="dateSearch">
                 <div class="card-title">日にち指定・空き検索</div>
-                <label>基準日</label>
-                <input id="searchDate" type="date">
-                <button class="btn btn-primary" onclick="doSearchSlots()" style="margin-top:14px">🔍 空きを検索</button>
+                <!-- 週間カレンダー -->
+                <div class="diag-filter-label">&#128197; 週間ビュー（タップで日付選択）</div>
+                <div class="week-cal" id="weekCalArea"></div>
+                <label style="margin-top:12px">基準日</label>
+                <div class="date-nav">
+                    <button class="btn-nav" onclick="shiftDate('searchDate',-1)">&#9668;</button>
+                    <input id="searchDate" type="date">
+                    <button class="btn-nav" onclick="shiftDate('searchDate',1)">&#9658;</button>
+                </div>
+                <!-- 診断士を指名して検索 -->
+                <div class="diag-filter-label">&#128104;&#8205;&#9877;&#65039; 診断士を指定（任意）</div>
+                <select id="diagFilter" style="margin-bottom:0">
+                    <option value="">&#9675; 指定なし（全員対象）</option>
+                </select>
+                <button class="btn btn-primary" onclick="doSearchSlots()" style="margin-top:14px">&#128269;
+                    空きを検索</button>
                 <div id="slotsArea" style="margin-top:12px"></div>
                 <button class="btn btn-secondary hidden" id="btnFallback" onclick="doSearchFallback()"
                     style="margin-top:8px">別の診断士でも探す</button>
             </div>
 
-            <!-- 確認画面 -->
-            <div class="card hidden" id="confirmArea">
-                <div class="card-title">予約内容の確認</div>
-                <div id="confirmDetail"></div>
-                <button class="btn btn-primary" onclick="doCreateBooking()" style="margin-top:14px">✅ 予約を確定する</button>
-                <button class="btn btn-outline" onclick="backToSlots()" style="margin-top:8px">← 戻る</button>
-                <div id="confirmMsg"></div>
-            </div>
+            <!-- 確認画面（ボトムシート内に移動) -->
         </div>
 
         <!-- 予約一覧 -->
         <div id="staffList" class="hidden">
+            <!-- 管理者統計カード -->
+            <div class="card" id="adminStats" style="margin-bottom:10px">
+                <div class="card-title">📊 今月のサマリー</div>
+                <div class="stats-grid" id="statsGrid">
+                    <div class="stat-card">
+                        <div class="stat-value" id="statToday">-</div>
+                        <div class="stat-label">本日の予約</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="statWeek">-</div>
+                        <div class="stat-label">今週の予約</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="statMonth">-</div>
+                        <div class="stat-label">今月の予約</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="statTotal">-</div>
+                        <div class="stat-label">最終確定済</div>
+                    </div>
+                </div>
+            </div>
             <div class="card">
                 <div class="card-title">予約一覧（本日以降）</div>
                 <label>電話番号で絞り込み（任意）</label>
@@ -553,7 +1176,11 @@
                 <div class="card-title">予約変更</div>
                 <div id="changeInfo" class="msg-info"></div>
                 <label>新しい基準日</label>
-                <input id="changeDate" type="date">
+                <div class="date-nav">
+                    <button class="btn-nav" onclick="shiftDate('changeDate',-1)">◄</button>
+                    <input id="changeDate" type="date">
+                    <button class="btn-nav" onclick="shiftDate('changeDate',1)">►</button>
+                </div>
                 <button class="btn btn-primary" onclick="doSearchChangeSlots()" style="margin-top:10px">🔍
                     空きを検索</button>
                 <div id="changeSlotsArea" style="margin-top:12px"></div>
@@ -585,6 +1212,15 @@
                     <option value="2">2ブロック（260分）</option>
                     <option value="3">3ブロック（390分）</option>
                 </select>
+                <!-- 繰り返し登録オプション -->
+                <label style="margin-top:10px">🔄 繰り返し登録</label>
+                <select id="availRepeat">
+                    <option value="0">繰り返しなし（一回のみ）</option>
+                    <option value="1">1週間繰り返す（2回）</option>
+                    <option value="2">2週間繰り返す（3回）</option>
+                    <option value="3">3週間繰り返す（4回）</option>
+                    <option value="4">4週間繰り返す（5回）</option>
+                </select>
                 <button class="btn btn-primary" onclick="doCreateAvail()" style="margin-top:14px">➕ 稼働枠を作成</button>
                 <div id="availMsg"></div>
             </div>
@@ -596,6 +1232,30 @@
                 <button class="btn btn-secondary" onclick="doListAvail()">🔄 更新</button>
                 <div id="availList" style="margin-top:12px"></div>
             </div>
+        </div>
+    </div>
+
+    <!-- ========== オーバーレイ + ボトムシート ========== -->
+    <div id="sheetOverlay" class="sheet-overlay" onclick="closeConfirmSheet()"></div>
+    <div id="confirmSheet" class="bottom-sheet">
+        <div class="sheet-handle"></div>
+        <div class="sheet-title">予約内容の確認</div>
+        <div id="sheetConfirmDetail"></div>
+        <!-- LINE通知プレビュー -->
+        <div class="line-preview-label">📱 診断士へのLINE通知プレビュー</div>
+        <div id="linePreviewBox" class="line-preview">…</div>
+        <button class="btn btn-primary" onclick="doCreateBooking()" style="margin-top:14px">✅ 予約を確定する</button>
+        <button class="btn btn-outline" onclick="closeConfirmSheet()" style="margin-top:8px">← 戻る</button>
+        <div id="sheetConfirmMsg"></div>
+    </div>
+
+    <!-- 顧客履歴ボトムシート -->
+    <div id="historyOverlay" class="sheet-overlay" onclick="closeHistorySheet()"></div>
+    <div id="historySheet" class="bottom-sheet">
+        <div class="sheet-handle"></div>
+        <div class="sheet-title">📞 顧客履歴</div>
+        <div id="historyContent">
+            <div class="loading-text" style="text-align:center;padding:20px">読込中...</div>
         </div>
     </div>
 
@@ -746,8 +1406,19 @@
                 if (res.role === 'staff') {
                     STATE.salon_id = res.salon_id;
                     setBadge('スタッフ');
+                    // 店舗名バッジ表示
+                    if (res.salon_name) {
+                        const sb = el('salonBadge');
+                        sb.textContent = '🏪 ' + res.salon_name;
+                        sb.classList.remove('hidden');
+                    }
                     show('screenStaff');
                     initStaffUI();
+                    // 今日の予約件数（GASが返す場合のみ表示）
+                    if (res.today_count !== undefined && res.today_count > 0) {
+                        el('todayCount').textContent = res.today_count + '件';
+                        show('todaySummary');
+                    }
                 } else if (res.role === 'diagnostician') {
                     STATE.diag_id = res.diag_id;
                     setBadge('診断士');
@@ -820,6 +1491,35 @@
             tomorrow.setDate(tomorrow.getDate() + 1);
             el('searchDate').value = fmtDate(tomorrow);
             el('changeDate').value = fmtDate(tomorrow);
+            // 電話番号入力フィールドの自動整形（数字のみ許可）
+            ['custPhone', 's2Phone', 'listPhone'].forEach(function (id) {
+                var inp = el(id);
+                if (inp) inp.addEventListener('input', function () {
+                    var v = this.value.replace(/\D/g, '');
+                    if (this.value !== v) this.value = v;
+                });
+            });
+            // custPhone: 入力後に過去顧客名を検索してオートフィル提案
+            el('custPhone').addEventListener('change', function () {
+                const phone = this.value.trim();
+                const suggestEl = el('custNameSuggest');
+                if (!phone || phone.length < 7) { hide('custNameSuggest'); return; }
+                callApi('apiFindCustomerByPhone', { line_user_id: STATE.line_user_id, customer_phone: phone }, (res) => {
+                    if (!res.ok || !res.customer_name) { hide('custNameSuggest'); return; }
+                    // 顧客名フィールドが空のときのみ提案
+                    if (el('custName').value.trim()) { hide('custNameSuggest'); return; }
+                    suggestEl.innerHTML = `
+<div class="msg-info" style="display:flex;align-items:center;gap:8px;padding:8px 10px;">
+  <span style="flex:1">💡 過去の顧客: <strong>${esc(res.customer_name)}</strong></span>
+  <button class="btn-copy" onclick="el('custName').value='${esc(res.customer_name)}';hide('custNameSuggest')">使う</button>
+</div>`;
+                    show('custNameSuggest');
+                });
+            });
+            // 診断士リスト読込 + 週間カレンダー描画 + プルトゥリフレッシュ
+            loadDiagList();
+            renderWeekCal();
+            setPullToRefresh(() => doListBookings());
             resetNewBooking();
         }
 
@@ -833,6 +1533,7 @@
                 tabs[1].classList.add('active');
                 hide('staffNew'); show('staffList');
                 doListBookings();
+                doAdminStats(); // 統計更新
             }
         }
 
@@ -840,8 +1541,9 @@
         function resetNewBooking() {
             STATE.step_type = ''; STATE.parent_booking_id = ''; STATE.preferred_diag_id = '';
             STATE.customer = {}; STATE.selectedSlot = null; STATE.selectedDiagId = ''; STATE.selectedDiagName = '';
+            closeConfirmSheet();
             show('stepSelect');
-            hide('step2ParentSearch'); hide('custInfo'); hide('dateSearch'); hide('confirmArea');
+            hide('step2ParentSearch'); hide('custInfo'); hide('dateSearch');
             el('slotsArea').innerHTML = ''; hide('btnFallback');
         }
 
@@ -907,20 +1609,21 @@
             show('dateSearch');
             el('slotsArea').innerHTML = '';
             hide('btnFallback');
-            hide('confirmArea');
         }
 
         function doSearchSlots() {
             const ymd = el('searchDate').value;
             if (!ymd) { showToast('基準日を選択してください', true); return; }
-            el('slotsArea').innerHTML = '<div class="loading-text" style="text-align:center;padding:16px"><div class="spinner" style="margin:0 auto 8px"></div>検索中...</div>';
+            showSkeleton('slotsArea', 3);
             hide('btnFallback');
+            const diagFilter = el('diagFilter') ? el('diagFilter').value : '';
             const payload = {
                 line_user_id: STATE.line_user_id,
                 step_type: STATE.step_type,
                 date_ymd: ymd,
                 parent_booking_id: STATE.parent_booking_id || '',
                 allow_fallback: false,
+                diag_id_filter: diagFilter,
             };
             callApi('apiSearchSlots', payload, (res) => {
                 if (!res.ok) { el('slotsArea').innerHTML = `<div class="msg-error">${esc(res.error)}</div>`; return; }
@@ -975,9 +1678,8 @@
             STATE.selectedSlot = btn.dataset.iso;
             STATE.selectedDiagId = btn.dataset.did;
             STATE.selectedDiagName = btn.dataset.dn;
-            show('confirmArea');
             const dt = fmtDt(STATE.selectedSlot);
-            el('confirmDetail').innerHTML = `
+            el('sheetConfirmDetail').innerHTML = `
 <table class="confirm-table">
   <tr><td>種別</td><td>${esc(STATE.step_type)}</td></tr>
   <tr><td>顧客名</td><td>${esc(STATE.customer.name)}</td></tr>
@@ -985,19 +1687,19 @@
   <tr><td>診断士</td><td>${esc(STATE.selectedDiagName)}</td></tr>
   <tr><td>日時</td><td>${dt}</td></tr>
 </table>`;
-            el('confirmMsg').innerHTML = '';
-            // 確認エリアへスクロール
-            el('confirmArea').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            el('sheetConfirmMsg').innerHTML = '';
+            openConfirmSheet();
+            updateLinePreview(); // LINE通知プレビュー更新
         }
 
         function backToSlots() {
-            hide('confirmArea');
+            closeConfirmSheet();
             STATE.selectedSlot = null;
         }
 
         function doCreateBooking() {
-            if (!STATE.selectedSlot) { showToast('枠を選択してください', true); return; }
-            el('confirmMsg').innerHTML = '<div class="loading-text" style="text-align:center;padding:10px">予約作成中...</div>';
+            if (!STATE.selectedSlot) { showToast('枚を選択してください', true); return; }
+            el('sheetConfirmMsg').innerHTML = '<div class="loading-text" style="text-align:center;padding:10px">予約作成中...</div>';
             const payload = {
                 line_user_id: STATE.line_user_id,
                 step_type: STATE.step_type,
@@ -1010,32 +1712,65 @@
                 start_at_iso: STATE.selectedSlot,
             };
             callApi('apiCreateBooking', payload, (res) => {
-                if (!res.ok) { el('confirmMsg').innerHTML = `<div class="msg-error">${esc(res.error)}</div>`; return; }
-                el('confirmMsg').innerHTML = `<div class="msg-success">✅ 予約確定: ${esc(res.booking.booking_id)}</div>`;
-                setTimeout(() => resetNewBooking(), 2500);
+                if (!res.ok) {
+                    el('sheetConfirmMsg').innerHTML = `<div class="msg-error">${esc(res.error)}</div>
+<button class="btn-retry" onclick="doCreateBooking()">🔄 再試行</button>`;
+                    return;
+                }
+                // 成功: ハプティクス + コピーボタン表示
+                if (navigator.vibrate) navigator.vibrate([50, 30, 50]);
+                const bid = res.booking.booking_id;
+                el('sheetConfirmMsg').innerHTML = `
+<div class="msg-success">
+  ✅ 予約確定: <strong>${esc(bid)}</strong><br>
+  <button class="btn-copy" onclick="copyId('${esc(bid)}')">&#128203; 予約IDをコピー</button>
+  <small style="display:block;color:#2e7d32;margin-top:4px">診断士へ通知済 📩</small>
+</div>`;
+                setTimeout(() => { closeConfirmSheet(); resetNewBooking(); }, 3500);
             });
         }
 
         /* --- 予約一覧 --- */
         function doListBookings() {
             const phone = el('listPhone').value.trim();
-            el('bookingsList').innerHTML = '<div class="loading-text" style="text-align:center;padding:16px"><div class="spinner" style="margin:0 auto 8px"></div>読込中...</div>';
+            showSkeleton('bookingsList', 3);
             callApi('apiListBookings', { line_user_id: STATE.line_user_id, q_phone: phone }, (res) => {
-                if (!res.ok) { el('bookingsList').innerHTML = `<div class="msg-error">${esc(res.error)}</div>`; return; }
+                if (!res.ok) {
+                    el('bookingsList').innerHTML = `<div class="msg-error">${esc(res.error)}</div>
+<button class="btn-retry" onclick="doListBookings()">🔄 再試行</button>`;
+                    return;
+                }
                 if (res.bookings.length === 0) {
                     el('bookingsList').innerHTML = '<div class="msg-info">該当する予約がありません</div>';
                     return;
                 }
+                // 日付近接度の判定基準
+                const now = new Date();
+                const todayStr = fmtDate(now);
+                const tomorrow = new Date(now); tomorrow.setDate(tomorrow.getDate() + 1);
+                const tomorrowStr = fmtDate(tomorrow);
+                const weekLater = new Date(now); weekLater.setDate(weekLater.getDate() + 7);
                 let h = '';
                 for (const b of res.bookings) {
+                    const startDate = new Date(b.start_at);
+                    const startDateStr = fmtDate(startDate);
+                    let dotCls = 'dot-later', dateCls = 'bi-date-later';
+                    if (startDateStr === todayStr) { dotCls = 'dot-today'; dateCls = 'bi-date-today'; }
+                    else if (startDateStr === tomorrowStr) { dotCls = 'dot-tomorrow'; dateCls = 'bi-date-tomorrow'; }
+                    else if (startDate <= weekLater) { dotCls = 'dot-week'; dateCls = 'bi-date-week'; }
+                    // STEP1の場合はSTEP2予約ボタンを表示
+                    const step2Btn = b.step_type === 'STEP1'
+                        ? `<button class="btn btn-outline btn-small" onclick="startStep2FromBooking('${esc(b.booking_id)}','${esc(b.diag_id)}','${esc(b.customer_name)}','${esc(b.customer_phone)}')">&#x1f504; STEP2予約</button>`
+                        : '';
                     h += `<div class="booking-item">
   <div class="bi-name">${esc(b.customer_name)}<span class="bi-step">${esc(b.step_type)}</span></div>
-  <div class="bi-sub">📅 ${fmtDt(b.start_at)}</div>
+  <div class="bi-sub ${dateCls}"><span class="urgency-dot ${dotCls}"></span>📅 ${fmtDt(b.start_at)}</div>
   <div class="bi-sub">👨‍⚕️ ${esc(b.diag_name)}</div>
   <div class="bi-sub">📞 ${esc(b.customer_phone)}</div>
   <div class="bi-actions">
     <button class="btn btn-secondary btn-small" onclick="openChange('${esc(b.booking_id)}')">変更</button>
     <button class="btn btn-danger btn-small" onclick="doCancel('${esc(b.booking_id)}')">キャンセル</button>
+    ${step2Btn}
   </div>
 </div>`;
                 }
@@ -1118,9 +1853,196 @@
             if (!confirm(`予約 ${bookingId} をキャンセルしますか？`)) return;
             callApi('apiCancelBooking', { line_user_id: STATE.line_user_id, booking_id: bookingId }, (res) => {
                 if (!res.ok) { showToast(res.error, true); return; }
+                if (navigator.vibrate) navigator.vibrate(80);
                 showToast('キャンセルしました');
                 doListBookings();
             });
+        }
+
+        /* ========== 日付ナビゲーション ========== */
+        function shiftDate(inputId, days) {
+            const inp = el(inputId);
+            if (!inp.value) {
+                const d = new Date(); d.setDate(d.getDate() + 1);
+                inp.value = fmtDate(d);
+            }
+            const d = new Date(inp.value + 'T00:00:00');
+            d.setDate(d.getDate() + days);
+            inp.value = fmtDate(d);
+        }
+
+        /* ========== ボトムシート制御 ========== */
+        function openConfirmSheet() {
+            el('sheetOverlay').classList.add('show');
+            requestAnimationFrame(() => el('confirmSheet').classList.add('show'));
+            document.body.style.overflow = 'hidden';
+        }
+        function closeConfirmSheet() {
+            el('sheetOverlay').classList.remove('show');
+            el('confirmSheet').classList.remove('show');
+            document.body.style.overflow = '';
+        }
+
+        /* ========== 予約IDコピー ========== */
+        function copyId(id) {
+            if (navigator.clipboard) {
+                navigator.clipboard.writeText(id).then(() => showToast('コピーしました: ' + id));
+            } else {
+                const ta = document.createElement('textarea');
+                ta.value = id; ta.style.position = 'fixed'; ta.style.opacity = '0';
+                document.body.appendChild(ta); ta.select();
+                document.execCommand('copy');
+                document.body.removeChild(ta);
+                showToast('コピーしました: ' + id);
+            }
+        }
+
+        /* ========== 一覧からSTEP2フロー開始 ========== */
+        function startStep2FromBooking(bookingId, diagId, custName, custPhone) {
+            switchStaffTab('new');
+            STATE.step_type = 'STEP2';
+            STATE.parent_booking_id = bookingId;
+            STATE.preferred_diag_id = diagId;
+            hide('stepSelect');
+            show('custInfo');
+            el('custStepLabel').textContent = '&#x1f504; STEP2 \u30d5\u30a9\u30ed\u30fc\u8a3a\u65ad\uff08\u540c\u4e00\u8a3a\u65ad\u58eb\u512a\u5148\uff09';
+            el('custName').value = custName;
+            el('custPhone').value = custPhone;
+        }
+
+        /* ========== \u30c0\u30fc\u30af\u30e2\u30fc\u30c9 ========== */
+        function toggleDarkMode() {
+            document.body.classList.toggle('dark');
+            const isDark = document.body.classList.contains('dark');
+            localStorage.setItem('mytone_dark', isDark ? '1' : '0');
+        }
+        // \u8d77\u52d5\u6642\u306b\u8a2d\u5b9a\u3092\u5fa9\u5143
+        (function () {
+            if (localStorage.getItem('mytone_dark') === '1') document.body.classList.add('dark');
+        })();
+
+        /* ========== \u30b9\u30b1\u30eb\u30c8\u30f3\u30ed\u30fc\u30c7\u30a3\u30f3\u30b0 ========== */
+        function showSkeleton(targetId, count) {
+            count = count || 3;
+            var h = '';
+            for (var i = 0; i < count; i++) {
+                h += '<div class="skeleton-item"><div style="padding:12px"><div class="skeleton-line medium"></div><div class="skeleton-line short"></div></div></div>';
+            }
+            el(targetId).innerHTML = h;
+        }
+
+        /* ========== \u30d7\u30eb\u30c8\u30a5\u30ea\u30d5\u30ec\u30c3\u30b7\u30e5 ========== */
+        function setPullToRefresh(onRefresh) {
+            let startY = 0, pulling = false;
+            const pullEl = el('pullIndicator');
+            document.addEventListener('touchstart', (e) => { startY = e.touches[0].clientY; }, { passive: true });
+            document.addEventListener('touchmove', (e) => {
+                if (window.scrollY === 0 && e.touches[0].clientY - startY > 60) {
+                    pulling = true; pullEl.classList.add('visible');
+                }
+            }, { passive: true });
+            document.addEventListener('touchend', () => {
+                if (pulling) {
+                    pulling = false; pullEl.classList.remove('visible');
+                    if (typeof onRefresh === 'function') onRefresh();
+                }
+            });
+        }
+
+        /* ========== \u9031\u9593\u30ab\u30ec\u30f3\u30c0\u30fc\u30d3\u30e5\u30fc ========== */
+        function renderWeekCal() {
+            const calEl = el('weekCalArea');
+            if (!calEl) return;
+            const today = new Date();
+            const DOW = ['\u65e5', '\u6708', '\u706b', '\u6c34', '\u6728', '\u91d1', '\u571f'];
+            const curVal = el('searchDate') ? el('searchDate').value : '';
+            let h = '';
+            for (let i = 0; i < 7; i++) {
+                const d = new Date(today);
+                d.setDate(today.getDate() + i);
+                const ymd = fmtDate(d);
+                const isSel = curVal === ymd;
+                const isToday = i === 0;
+                h += `<div class="week-day${isToday ? ' wd-today' : ''}${isSel ? ' wd-selected' : ''}" onclick="if(el('searchDate'))el('searchDate').value='${ymd}';renderWeekCal()">
+  <div class="wd-date">${d.getMonth() + 1}/${d.getDate()}</div>
+  <div class="wd-dow">${DOW[d.getDay()]}</div>
+  <div class="wd-slots">&nbsp;</div>
+</div>`;
+            }
+            calEl.innerHTML = h;
+        }
+
+        /* ========== \u8a3a\u65ad\u58eb\u30ea\u30b9\u30c8\u8aad\u8fbc ========== */
+        function loadDiagList() {
+            const sel = el('diagFilter');
+            if (!sel) return;
+            callApi('apiGetDiagList', { line_user_id: STATE.line_user_id }, (res) => {
+                if (!res.ok || !res.diags) return;
+                sel.innerHTML = '<option value="">\u25cb \u6307\u5b9a\u306a\u3057\uff08\u5168\u54e1\u5bfe\u8c61\uff09</option>';
+                res.diags.forEach(d => {
+                    sel.innerHTML += `<option value="${esc(d.diag_id)}">${esc(d.diag_name)}</option>`;
+                });
+            });
+        }
+
+        /* ========== LINE\u901a\u77e5\u30d7\u30ec\u30d3\u30e5\u30fc ========== */
+        function updateLinePreview() {
+            const box = el('linePreviewBox');
+            if (!box || !STATE.selectedSlot) return;
+            const dt = fmtDt(STATE.selectedSlot);
+            box.innerHTML = `\u3010MYTONE\u4e88\u7d04\u304a\u77e5\u3089\u305b\u3011<br>\u65b0\u3057\u3044\u4e88\u7d04\u304c\u5165\u308a\u307e\u3057\u305f&#x1f4c5;<br>\u9867\u5ba2\u540d: ${esc(STATE.customer.name || '')}<br>\u7a2e\u5225: ${esc(STATE.step_type)}<br>\u65e5\u6642: ${dt}<br>\u8a3a\u65ad\u58eb: ${esc(STATE.selectedDiagName)}<br><small>\u203b\u8a73\u7d30\u306f\u30b7\u30b9\u30c6\u30e0\u3067\u3054\u78ba\u8a8d\u304f\u3060\u3055\u3044</small>`;
+        }
+
+        /* ========== \u9867\u5ba2\u5c65\u6b74\u30b7\u30fc\u30c8 ========== */
+        function doViewHistory() {
+            const phone = el('custPhone').value.trim();
+            if (!phone) { showToast('\u5148\u306b\u96fb\u8a71\u756a\u53f7\u3092\u5165\u529b\u3057\u3066\u304f\u3060\u3055\u3044', true); return; }
+            el('historyContent').innerHTML = '<div class="loading-text" style="text-align:center;padding:20px"><div class="spinner" style="margin:0 auto 8px"></div>\u8aad\u8fbc\u4e2d...</div>';
+            openHistorySheet();
+            callApi('apiGetCustomerHistory', { line_user_id: STATE.line_user_id, customer_phone: phone }, (res) => {
+                if (!res.ok) { el('historyContent').innerHTML = `<div class="msg-error">${esc(res.error)}</div>`; return; }
+                if (!res.bookings || res.bookings.length === 0) {
+                    el('historyContent').innerHTML = '<div class="msg-info">\u904e\u53bb\u306e\u4e88\u7d04\u306f\u3042\u308a\u307e\u305b\u3093</div>';
+                    return;
+                }
+                let h = `<p style="font-size:.8rem;color:#666;margin-bottom:8px">\ud83d\udcde ${esc(phone)}</p>`;
+                for (const b of res.bookings) {
+                    const col = b.status === 'CONFIRMED' || b.status === 'CHANGED' ? '#2e7d32' : b.status === 'CANCELED' ? '#c62828' : '#888';
+                    h += `<div class="history-item">\n  ${fmtDt(b.start_at)}<span class="history-step">${esc(b.step_type)}</span><br>\n  <span style="color:#555">\ud83d\udc68\u200d\u2695\ufe0f ${esc(b.diag_name)}</span>\n  <span style="float:right;font-size:.75rem;color:${col}">${esc(b.status)}</span>\n</div>`;
+                }
+                el('historyContent').innerHTML = h;
+            });
+        }
+        function openHistorySheet() {
+            el('historyOverlay').classList.add('show');
+            requestAnimationFrame(() => el('historySheet').classList.add('show'));
+            document.body.style.overflow = 'hidden';
+        }
+        function closeHistorySheet() {
+            el('historyOverlay').classList.remove('show');
+            el('historySheet').classList.remove('show');
+            document.body.style.overflow = '';
+        }
+
+        /* ========== \u7ba1\u7406\u8005\u7d71\u8a08 ========== */
+        function doAdminStats() {
+            ['statToday', 'statWeek', 'statMonth', 'statTotal'].forEach(id => {
+                const e = el(id); if (e) e.textContent = '\u2026';
+            });
+            callApi('apiAdminStats', { line_user_id: STATE.line_user_id }, (res) => {
+                if (!res.ok) return;
+                if (el('statToday')) el('statToday').textContent = res.today ?? '-';
+                if (el('statWeek')) el('statWeek').textContent = res.week ?? '-';
+                if (el('statMonth')) el('statMonth').textContent = res.month ?? '-';
+                if (el('statTotal')) el('statTotal').textContent = res.total ?? '-';
+            });
+        }
+
+        /* ========== \u30a8\u30e9\u30fc\u6642\u306e\u518d\u8a66\u884c\u30dc\u30bf\u30f3\u8868\u793a ========== */
+        function showRetryError(targetId, msg, fn, payload, cb) {
+            const retryJson = JSON.stringify({ fn, payload }).replace(/"/g, '&quot;');
+            el(targetId).innerHTML = `<div class="msg-error">${esc(msg)}</div>
+<button class="btn-retry" onclick='var d=JSON.parse(this.dataset.r);callApi(d.fn,d.payload,function(r){if(!r.ok){showRetryError("${targetId}",r.error,d.fn,d.payload,null);}else{el("${targetId}").innerHTML="";}}' data-r="${retryJson}">\ud83d\udd04 \u518d\u8a66\u884c</button>`;
         }
 
         /* ========== 診断士UI ========== */
@@ -1157,14 +2079,20 @@
             const bv = el('availBlocks').value;
             if (!dv || !tv) { el('availMsg').innerHTML = '<div class="msg-error">日付と時刻を選択してください</div>'; return; }
             el('availMsg').innerHTML = '<div class="loading-text" style="text-align:center;padding:10px">作成中...</div>';
+            const repeatWeeks = parseInt(el('availRepeat') ? el('availRepeat').value : '0') || 0;
             callApi('apiDiagCreateAvail', {
                 line_user_id: STATE.line_user_id,
                 date_ymd: dv,
                 start_hhmm: tv,
                 blocks: bv,
+                repeat_weeks: repeatWeeks,
             }, (res) => {
-                if (!res.ok) { el('availMsg').innerHTML = `<div class="msg-error">${esc(res.error)}</div>`; return; }
-                el('availMsg').innerHTML = `<div class="msg-success">✅ 稼働枠を作成しました</div>`;
+                if (!res.ok) {
+                    el('availMsg').innerHTML = `<div class="msg-error">${esc(res.error)}</div><button class="btn-retry" onclick="doCreateAvail()">&#x1f504; 再試行</button>`;
+                    return;
+                }
+                const cnt = res.created_count || 1;
+                el('availMsg').innerHTML = `<div class="msg-success">&#x2705; 稼働枠を${cnt}件作成しました</div>`;
             });
         }
 
@@ -1237,8 +2165,8 @@
 
         /* ========== ヘルパー ========== */
         function el(id) { return document.getElementById(id); }
-        function show(id) { el(id).classList.remove('hidden'); }
-        function hide(id) { el(id).classList.add('hidden'); }
+        function show(id) { const e = el(id); if (e) e.classList.remove('hidden'); }
+        function hide(id) { const e = el(id); if (e) e.classList.add('hidden'); }
 
         function esc(s) {
             if (s == null) return '';
