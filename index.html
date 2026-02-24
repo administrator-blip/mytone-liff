@@ -61,7 +61,7 @@
             align-items: center;
             justify-content: center;
             gap: 10px;
-            padding: 12px 96px 12px 16px;
+            padding: 12px 16px;
             width: 100%;
             flex-wrap: nowrap;
         }
@@ -1048,7 +1048,7 @@
             width: 44px;
             border-radius: 12px;
             background: rgba(91, 168, 140, 0.06);
-            padding: 6px 4px;
+            padding: 10px 4px;
             text-align: center;
             cursor: pointer;
             transition: background 0.15s;
@@ -1059,18 +1059,18 @@
         }
 
         .week-day .wd-date {
-            font-size: 0.65rem;
+            font-size: 0.8rem;
             color: #888;
         }
 
         .week-day .wd-dow {
-            font-size: 0.8rem;
+            font-size: 0.95rem;
             font-weight: 700;
             color: #5ba88c;
         }
 
         .week-day .wd-slots {
-            font-size: 0.65rem;
+            font-size: 0.75rem;
             color: #6dbfa3;
             margin-top: 3px;
         }
@@ -1320,25 +1320,25 @@
         .avail-cal {
             display: grid;
             grid-template-columns: repeat(7, 1fr);
-            gap: 3px;
+            gap: 4px;
             margin-bottom: 12px;
         }
 
         .avail-cal-head {
             text-align: center;
-            font-size: 0.7rem;
+            font-size: 0.82rem;
             font-weight: 700;
             color: #888;
-            padding: 4px 0;
+            padding: 6px 0;
         }
 
         .avail-cal-cell {
             text-align: center;
-            padding: 6px 2px;
+            padding: 8px 2px;
             border-radius: 10px;
-            font-size: 0.78rem;
+            font-size: 0.88rem;
             background: rgba(0, 0, 0, 0.02);
-            min-height: 38px;
+            min-height: 48px;
         }
 
         .avail-cal-cell.has-avail {
@@ -1352,8 +1352,13 @@
         }
 
         .avail-cal-cell .ac-count {
-            font-size: 0.65rem;
-            color: #5ba88c;
+            font-size: 0.78rem;
+            color: #fff;
+            background: #5ba88c;
+            border-radius: 10px;
+            padding: 1px 6px;
+            display: inline-block;
+            margin-top: 2px;
         }
 
         .avail-cal-nav {
@@ -1366,6 +1371,86 @@
         .avail-cal-nav span {
             font-weight: 700;
             font-size: 0.95rem;
+        }
+
+        /* ========== 診断士ダッシュボード ========== */
+        .dash-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+
+        .dash-stat-card {
+            text-align: center;
+            padding: 14px 8px;
+            border-radius: 14px;
+            background: linear-gradient(135deg, rgba(91, 168, 140, 0.1), rgba(91, 168, 140, 0.05));
+        }
+
+        .dash-stat-num {
+            font-size: 1.6rem;
+            font-weight: 800;
+            color: #3d6b5a;
+        }
+
+        .dash-stat-label {
+            font-size: 0.72rem;
+            color: #888;
+            margin-top: 2px;
+        }
+
+        .dash-booking {
+            padding: 12px 14px;
+            border-radius: 14px;
+            background: rgba(255, 255, 255, 0.7);
+            border: 1px solid rgba(91, 168, 140, 0.12);
+            margin-bottom: 10px;
+        }
+
+        .dash-booking-date {
+            font-size: 0.82rem;
+            font-weight: 700;
+            color: #5ba88c;
+        }
+
+        .dash-booking-info {
+            font-size: 0.85rem;
+            color: #3d4451;
+            margin-top: 4px;
+        }
+
+        .dash-booking-status {
+            display: inline-block;
+            font-size: 0.72rem;
+            font-weight: 600;
+            padding: 2px 10px;
+            border-radius: 20px;
+            margin-top: 6px;
+        }
+
+        .dash-booking-status.confirmed {
+            background: rgba(46, 125, 50, 0.12);
+            color: #2e7d32;
+        }
+
+        .dash-booking-status.changed {
+            background: rgba(245, 124, 0, 0.12);
+            color: #e65100;
+        }
+
+        .dash-booking-status.canceled {
+            background: rgba(198, 40, 40, 0.12);
+            color: #c62828;
+        }
+
+        .dash-section-title {
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: #3d6b5a;
+            margin-bottom: 10px;
+            padding-bottom: 6px;
+            border-bottom: 2px solid rgba(91, 168, 140, 0.15);
         }
 
         /* ========== オフラインバナー ========== */
@@ -2009,9 +2094,10 @@
     </div>
     <!--==========診断士画面==========-->
     <div id="screenDiag" class="container hidden">
-        <div class="tab-bar">
+        <div class="tab-bar" id="diagTabs">
             <div class="tab active" onclick="switchDiagTab('add')">稼働枠追加</div>
             <div class="tab" onclick="switchDiagTab('list')">稼働枠一覧</div>
+            <div class="tab" onclick="switchDiagTab('dash')">📊 ダッシュボード</div>
         </div>
         <div id="diagAdd">
             <div class="card">
@@ -2035,7 +2121,7 @@
         </div>
         <div id="diagList" class="hidden">
             <div class="card">
-                <div class="card-title">稼働枠一覧（2週間）</div>
+                <div class="card-title">稼働枠一覧</div>
                 <!-- 稼働枠カレンダービュー -->
                 <div class="avail-cal-nav"><button class="btn-nav" onclick="shiftAvailCalMonth(-1)">◄</button><span
                         id="availCalTitle"></span><button class="btn-nav" onclick="shiftAvailCalMonth(1)">►</button>
@@ -2043,6 +2129,28 @@
                 <div id="availCalGrid" class="avail-cal"></div><button class="btn btn-secondary"
                     onclick="doListAvail()">🔄 一覧更新</button>
                 <div id="availList" style="margin-top:12px"></div>
+            </div>
+        </div>
+        <div id="diagDash" class="hidden">
+            <div class="card">
+                <div class="card-title">📊 予約ダッシュボード</div>
+                <div class="dash-stats">
+                    <div class="dash-stat-card">
+                        <div class="dash-stat-num" id="dashToday">-</div>
+                        <div class="dash-stat-label">今日</div>
+                    </div>
+                    <div class="dash-stat-card">
+                        <div class="dash-stat-num" id="dashWeek">-</div>
+                        <div class="dash-stat-label">今週</div>
+                    </div>
+                    <div class="dash-stat-card">
+                        <div class="dash-stat-num" id="dashTotal">-</div>
+                        <div class="dash-stat-label">全件</div>
+                    </div>
+                </div>
+                <div class="dash-section-title">📅 今後の予約一覧</div>
+                <div id="diagBookingsList"></div>
+                <button class="btn btn-secondary" onclick="loadDiagDashboard()" style="margin-top:10px">🔄 更新</button>
             </div>
         </div>
     </div>
@@ -3200,19 +3308,77 @@
         }
 
         function switchDiagTab(tab) {
-            const tabs = document.querySelectorAll('#screenDiag .tab');
+            const tabs = document.querySelectorAll('#diagTabs .tab');
             tabs.forEach(t => t.classList.remove('active'));
 
             if (tab === 'add') {
                 tabs[0].classList.add('active');
-                show('diagAdd'); hide('diagList');
-            }
-
-            else {
+                show('diagAdd'); hide('diagList'); hide('diagDash');
+            } else if (tab === 'list') {
                 tabs[1].classList.add('active');
-                hide('diagAdd'); show('diagList');
+                hide('diagAdd'); show('diagList'); hide('diagDash');
                 doListAvail();
+            } else if (tab === 'dash') {
+                tabs[2].classList.add('active');
+                hide('diagAdd'); hide('diagList'); show('diagDash');
+                loadDiagDashboard();
             }
+        }
+
+        /* ========== 診断士ダッシュボード ========== */
+        function loadDiagDashboard() {
+            el('diagBookingsList').innerHTML = '<div class="loading-text" style="text-align:center;padding:16px"><div class="spinner" style="margin:0 auto 8px"></div>読込中...</div>';
+
+            callApi('apiListBookings', {
+                line_user_id: STATE.line_user_id, q_phone: '', q_name: ''
+            }, (res) => {
+                if (!res.ok) {
+                    el('diagBookingsList').innerHTML = '<div class="msg-error">' + esc(res.error) + '</div>';
+                    return;
+                }
+
+                // 診断士IDでフィルタリング
+                const myBookings = (res.bookings || []).filter(b => b.diag_id === STATE.diag_id && b.status !== 'CANCELED');
+                const now = new Date();
+                const todayStr = fmtDate(now);
+
+                // 今週末の日付を計算
+                const weekEnd = new Date(now);
+                weekEnd.setDate(now.getDate() + (7 - now.getDay()));
+                const weekEndStr = fmtDate(weekEnd);
+
+                // 統計計算
+                let todayCount = 0, weekCount = 0;
+                myBookings.forEach(b => {
+                    const bDate = b.start_at ? b.start_at.substring(0, 10) : '';
+                    if (bDate === todayStr) todayCount++;
+                    if (bDate >= todayStr && bDate <= weekEndStr) weekCount++;
+                });
+
+                el('dashToday').textContent = todayCount;
+                el('dashWeek').textContent = weekCount;
+                el('dashTotal').textContent = myBookings.length;
+
+                // 予約リスト表示（日付順）
+                const sorted = myBookings.sort((a, b) => (a.start_at || '').localeCompare(b.start_at || ''));
+
+                if (sorted.length === 0) {
+                    el('diagBookingsList').innerHTML = '<div class="msg-info">予約がありません</div>';
+                    return;
+                }
+
+                let h = '';
+                for (const b of sorted) {
+                    const statusCls = (b.status === 'CONFIRMED') ? 'confirmed' : (b.status === 'CHANGED') ? 'changed' : 'canceled';
+                    const statusLabel = (b.status === 'CONFIRMED') ? '✅ 確定' : (b.status === 'CHANGED') ? '🔄 変更済' : '❌ キャンセル';
+                    h += `<div class="dash-booking">
+                        <div class="dash-booking-date">📅 ${fmtDt(b.start_at)} 〜 ${fmtTime(b.end_at)}</div>
+                        <div class="dash-booking-info">👤 ${esc(b.customer_name)} 様　<span style="color:#888;font-size:0.78rem">${esc(b.step_type)}</span></div>
+                        <div><span class="dash-booking-status ${statusCls}">${statusLabel}</span></div>
+                    </div>`;
+                }
+                el('diagBookingsList').innerHTML = h;
+            });
         }
 
         function doCreateAvail() {
