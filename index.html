@@ -33,7 +33,7 @@
 
         body {
             font-family: 'Noto Sans JP', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Meiryo', sans-serif;
-            background: linear-gradient(160deg, #f0f5f2 0%, #faf8f5 50%, #f5f0eb 100%);
+            background: linear-gradient(160deg, #e8f0ec 0%, #f7f5f0 35%, #faf8f5 55%, #f5f0eb 80%, #ede7e0 100%);
             color: #3d4451;
             min-height: 100%;
             padding-bottom: calc(env(safe-area-inset-bottom) + 16px);
@@ -41,27 +41,52 @@
 
         /* ========== ヘッダー ========== */
         .app-header {
-            background: linear-gradient(135deg, #3d6b5a 0%, #5ba88c 50%, #6dbfa3 100%);
+            background: linear-gradient(135deg, #2d5a4a 0%, #3d6b5a 20%, #5ba88c 60%, #4d9b80 100%);
             color: #fff;
-            padding: 14px 16px;
-            padding-top: calc(env(safe-area-inset-top) + 14px);
+            padding: 0;
+            padding-top: env(safe-area-inset-top);
             text-align: center;
             position: sticky;
             top: 0;
             z-index: 100;
-            box-shadow: 0 2px 12px rgba(91, 168, 140, 0.3);
+            box-shadow: 0 4px 20px rgba(45, 90, 74, 0.35), 0 1px 4px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* ヘッダー上段: ロゴ+タイトル */
+        .header-main {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            padding: 12px 56px;
+            width: 100%;
+            flex-wrap: nowrap;
+        }
+
+        /* ヘッダー下段: バッジ情報 */
+        .header-sub {
             display: flex;
             align-items: center;
             justify-content: center;
             gap: 8px;
+            padding: 0 16px 8px;
             flex-wrap: wrap;
         }
 
+        .header-sub:empty {
+            display: none;
+        }
+
         .app-header .header-title {
-            font-size: 1.05rem;
+            font-size: 1.15rem;
             font-weight: 800;
-            letter-spacing: 0.08em;
+            letter-spacing: 0.1em;
             margin: 0;
+            white-space: nowrap;
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
         }
 
         /* ========== フォントサイズ切替ボタン ========== */
@@ -70,31 +95,33 @@
             top: 50%;
             left: 14px;
             transform: translateY(-50%);
-            background: rgba(255, 255, 255, 0.12);
-            border: none;
+            background: rgba(255, 255, 255, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.2);
             border-radius: 50%;
-            width: 32px;
-            height: 32px;
+            width: 34px;
+            height: 34px;
             font-size: 0.75rem;
             font-weight: 700;
             cursor: pointer;
             color: #fff;
-            transition: background 0.2s;
+            transition: background 0.2s, transform 0.15s;
             backdrop-filter: blur(4px);
         }
 
         .font-toggle:active {
-            background: rgba(255, 255, 255, 0.25);
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-50%) scale(0.92);
         }
 
         .app-header .role-badge {
             display: inline-block;
             font-size: 0.68rem;
-            background: rgba(255, 255, 255, 0.2);
-            border: 1px solid rgba(255, 255, 255, 0.3);
+            background: rgba(255, 255, 255, 0.18);
+            border: 1px solid rgba(255, 255, 255, 0.25);
             border-radius: 12px;
             padding: 2px 10px;
-            margin-top: 3px;
+            backdrop-filter: blur(4px);
+            letter-spacing: 0.03em;
         }
 
         /* ヘッダーゴールドアクセントライン */
@@ -103,17 +130,24 @@
             bottom: 0;
             left: 0;
             right: 0;
-            height: 3px;
-            background: linear-gradient(90deg, #c5a44e, #e8cc6b, #c5a44e);
+            height: 4px;
+            background: linear-gradient(90deg, #c5a44e 0%, #e8cc6b 30%, #f0d97a 50%, #e8cc6b 70%, #c5a44e 100%);
+            box-shadow: 0 1px 6px rgba(197, 164, 78, 0.4);
         }
 
         /* ========== ロゴSVG ========== */
         .header-logo {
-            width: 28px;
-            height: 28px;
+            width: 38px;
+            height: 38px;
             vertical-align: middle;
-            margin-right: 6px;
             border-radius: 50%;
+            flex-shrink: 0;
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+            transition: transform 0.3s;
+        }
+
+        .header-logo:hover {
+            transform: scale(1.08);
         }
 
         /* ========== 共通 ========== */
@@ -129,29 +163,29 @@
 
         /* ========== カード（ガラスモーフィズム） ========== */
         .card {
-            background: rgba(255, 255, 255, 0.65);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            border: 1px solid rgba(255, 255, 255, 0.6);
-            border-radius: 18px;
-            padding: 18px;
+            background: rgba(255, 255, 255, 0.72);
+            backdrop-filter: blur(18px);
+            -webkit-backdrop-filter: blur(18px);
+            border: 1px solid rgba(255, 255, 255, 0.7);
+            border-radius: 20px;
+            padding: 20px;
             margin-bottom: 14px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
-            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.05), 0 1px 3px rgba(0, 0, 0, 0.04);
+            transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.25s;
         }
 
         .card:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 6px 24px rgba(0, 0, 0, 0.1);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08), 0 2px 6px rgba(0, 0, 0, 0.06);
         }
 
         .card-title {
             font-size: 0.95rem;
             font-weight: 700;
-            color: #3d6b5a;
+            color: #2d5a4a;
             margin-bottom: 14px;
             padding-bottom: 10px;
-            border-bottom: 2px solid rgba(91, 168, 140, 0.15);
+            border-bottom: 2px solid rgba(91, 168, 140, 0.18);
             display: flex;
             align-items: center;
             gap: 8px;
@@ -216,13 +250,13 @@
         }
 
         .btn-primary {
-            background: linear-gradient(135deg, #3d6b5a, #5ba88c, #6dbfa3);
+            background: linear-gradient(135deg, #2d5a4a 0%, #3d6b5a 30%, #5ba88c 80%, #6dbfa3 100%);
             color: #fff;
-            box-shadow: 0 4px 14px rgba(91, 168, 140, 0.35);
+            box-shadow: 0 4px 16px rgba(45, 90, 74, 0.35);
         }
 
         .btn-primary:hover {
-            box-shadow: 0 6px 20px rgba(91, 168, 140, 0.45);
+            box-shadow: 0 6px 24px rgba(45, 90, 74, 0.45);
         }
 
         .btn-secondary {
@@ -873,9 +907,10 @@
         /* ========== 店舗名バッジ ========== */
         .salon-badge {
             display: inline-block;
-            font-size: 0.68rem;
-            color: rgba(255, 255, 255, 0.8);
-            margin-top: 2px;
+            font-size: 0.7rem;
+            color: rgba(255, 255, 255, 0.9);
+            letter-spacing: 0.03em;
+            font-weight: 500;
         }
 
         /* ========== ダークモード トグルボタン ========== */
@@ -1243,22 +1278,10 @@
             display: block;
         }
 
-        /* ========== フォントサイズ切替 ========== */
+        /* ========== フォントサイズ切替（位置上書き） ========== */
         .font-toggle {
-            position: absolute;
-            top: 50%;
             right: 52px;
-            transform: translateY(-50%);
-            background: rgba(255, 255, 255, 0.12);
-            border: none;
-            color: #fff;
-            border-radius: 50%;
-            width: 32px;
-            height: 32px;
-            font-size: 0.7rem;
-            font-weight: 700;
-            cursor: pointer;
-            backdrop-filter: blur(4px);
+            left: auto;
         }
 
         body.font-lg {
@@ -1791,23 +1814,29 @@
 <body>
     <!-- ========== ヘッダー ========== -->
     <div class="app-header" style="position:relative">
-        <svg class="header-logo" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 44 44" width="30" height="30"
-            aria-label="MYTONE">
-            <!-- 背景円 -->
-            <circle cx="22" cy="22" r="21" fill="#fff" />
-            <!-- ティール色セグメント（上〜右上）-->
-            <path d="M22,22 L22,2 A20,20 0 0,1 38.7,32 Z" fill="#5ba88c" />
-            <!-- ピンク色セグメント（右下）-->
-            <path d="M22,22 L38.7,32 A20,20 0 0,1 10,38.6 Z" fill="#e88b8b" />
-            <!-- ゴールド色セグメント（左〜上）-->
-            <path d="M22,22 L10,38.6 A20,20 0 0,1 22,2 Z" fill="#e8cc6b" />
-            <!-- 女性シルエット（白） -->
-            <ellipse cx="22" cy="16" rx="5" ry="6" fill="rgba(255,255,255,0.92)" />
-            <path d="M15,30 Q16,24 22,24 Q28,24 29,30 Z" fill="rgba(255,255,255,0.92)" />
-        </svg>
-        <h1 class="header-title">MYTONE 予約システム</h1>
-        <div id="salonBadge" class="salon-badge hidden"></div>
-        <div id="roleBadge" class="role-badge hidden"></div>
+        <!-- 上段: ロゴ + タイトル -->
+        <div class="header-main">
+            <svg class="header-logo" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 44 44" width="38" height="38"
+                aria-label="MYTONE">
+                <!-- 背景円 -->
+                <circle cx="22" cy="22" r="21" fill="#fff" />
+                <!-- ティール色セグメント（上〜右上）-->
+                <path d="M22,22 L22,2 A20,20 0 0,1 38.7,32 Z" fill="#5ba88c" />
+                <!-- ピンク色セグメント（右下）-->
+                <path d="M22,22 L38.7,32 A20,20 0 0,1 10,38.6 Z" fill="#e88b8b" />
+                <!-- ゴールド色セグメント（左〜上）-->
+                <path d="M22,22 L10,38.6 A20,20 0 0,1 22,2 Z" fill="#e8cc6b" />
+                <!-- 女性シルエット（白） -->
+                <ellipse cx="22" cy="16" rx="5" ry="6" fill="rgba(255,255,255,0.92)" />
+                <path d="M15,30 Q16,24 22,24 Q28,24 29,30 Z" fill="rgba(255,255,255,0.92)" />
+            </svg>
+            <h1 class="header-title">MYTONE 予約システム</h1>
+        </div>
+        <!-- 下段: バッジ情報 -->
+        <div class="header-sub">
+            <div id="salonBadge" class="salon-badge hidden"></div>
+            <div id="roleBadge" class="role-badge hidden"></div>
+        </div>
         <button class="font-toggle" onclick="toggleFontSize()">Aa</button>
         <button class="dark-toggle" onclick="toggleDarkMode()">&#127769;</button>
         <div class="header-accent"></div>
@@ -1815,13 +1844,14 @@
     <!-- オフラインバナー -->
     <div id="offlineBanner" class="offline-banner">⚠️ オフラインです。最後に取得したデータを表示しています。</div>
     <!-- プルトゥリフレッシュインジケーター -->
-    <div id="pullIndicator">&#8595; 引っ張って更新</div>
+    <div id="pullIndicator">↓ 引っ張って更新</div>
 
     <!--==========スプラッシュ画面==========-->
     <div id="screenSplash"
-        style="position:fixed;inset:0;background:linear-gradient(160deg,#f0f5f2 0%,#faf8f5 50%,#f5f0eb 100%);z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="110" height="110">
-            <circle cx="60" cy="60" r="58" fill="#fff" opacity="0.92" />
+        style="position:fixed;inset:0;background:linear-gradient(160deg,#e8f0ec 0%,#f7f5f0 35%,#faf8f5 55%,#f5f0eb 80%,#ede7e0 100%);z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="120" height="120"
+            style="filter:drop-shadow(0 4px 12px rgba(0,0,0,0.12))">
+            <circle cx="60" cy="60" r="58" fill="#fff" opacity="0.95" />
             <path d="M60,60 L60,4 A56,56 0 0,1 102.5,82 Z" fill="#5ba88c" />
             <path d="M60,60 L102.5,82 A56,56 0 0,1 26,103 Z" fill="#e88b8b" />
             <path d="M60,60 L26,103 A56,56 0 0,1 60,4 Z" fill="#e8cc6b" />
@@ -1829,18 +1859,18 @@
             <path d="M42,82 Q44,65 60,65 Q76,65 78,82 Z" fill="rgba(255,255,255,0.93)" />
         </svg>
         <div
-            style="font-size:1.8rem;font-weight:900;color:#3d4451;letter-spacing:0.15em;margin-top:18px;font-family:'Noto Sans JP',sans-serif">
+            style="font-size:2rem;font-weight:900;letter-spacing:0.18em;margin-top:20px;font-family:'Noto Sans JP',sans-serif;background:linear-gradient(135deg,#3d6b5a 0%,#5ba88c 40%,#c5a44e 70%,#e8cc6b 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">
             MY TONE</div>
         <div
-            style="font-size:0.72rem;color:#888;letter-spacing:0.12em;margin-top:4px;font-family:'Noto Sans JP',sans-serif">
+            style="font-size:0.75rem;color:#777;letter-spacing:0.12em;margin-top:6px;font-family:'Noto Sans JP',sans-serif;font-weight:500">
             マイトーン予約システム</div>
         <div
-            style="font-size:0.58rem;color:#bbb;letter-spacing:0.18em;margin-top:2px;font-family:'Noto Sans JP',sans-serif;text-transform:uppercase">
+            style="font-size:0.6rem;color:#b0a898;letter-spacing:0.2em;margin-top:3px;font-family:'Noto Sans JP',sans-serif;text-transform:uppercase;font-weight:500">
             beauty salon reservation</div>
         <div
-            style="width:110px;height:3px;background:rgba(91,168,140,0.2);border-radius:2px;margin-top:28px;overflow:hidden">
+            style="width:120px;height:3px;background:rgba(91,168,140,0.15);border-radius:2px;margin-top:30px;overflow:hidden">
             <div
-                style="width:40%;height:100%;background:linear-gradient(90deg,#5ba88c,#e8cc6b);border-radius:2px;animation:splashLoad 1.5s ease-in-out infinite">
+                style="width:40%;height:100%;background:linear-gradient(90deg,#5ba88c,#c5a44e,#e8cc6b);border-radius:2px;animation:splashLoad 1.5s ease-in-out infinite">
             </div>
         </div>
     </div>
