@@ -10,9 +10,11 @@
     <meta http-equiv="Expires" content="0">
     <title>MYTONE 予約システム</title>
     <link rel="manifest" href="./manifest.json">
-    <meta name="theme-color" content="#1b5e20">
+    <meta name="theme-color" content="#5ba88c">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <!-- LIFF SDK: 動的読み込み（CDNフォールバック対応） -->
+    <!-- Noto Sans JP フォント -->
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet">
     <style>
         /* ========== リセット・ベース ========== */
         *,
@@ -30,16 +32,16 @@
         }
 
         body {
-            font-family: 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Meiryo', sans-serif;
-            background: #f0f4f0;
-            color: #1a1a1a;
+            font-family: 'Noto Sans JP', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Meiryo', sans-serif;
+            background: linear-gradient(160deg, #f0f5f2 0%, #faf8f5 50%, #f5f0eb 100%);
+            color: #3d4451;
             min-height: 100%;
             padding-bottom: calc(env(safe-area-inset-bottom) + 16px);
         }
 
         /* ========== ヘッダー ========== */
         .app-header {
-            background: linear-gradient(135deg, #1b5e20, #2e7d32);
+            background: linear-gradient(135deg, #3d6b5a 0%, #5ba88c 50%, #6dbfa3 100%);
             color: #fff;
             padding: 14px 16px;
             padding-top: calc(env(safe-area-inset-top) + 14px);
@@ -47,22 +49,71 @@
             position: sticky;
             top: 0;
             z-index: 100;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 2px 12px rgba(91, 168, 140, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            flex-wrap: wrap;
         }
 
-        .app-header h1 {
-            font-size: 1.1rem;
+        .app-header .header-title {
+            font-size: 1.05rem;
+            font-weight: 800;
+            letter-spacing: 0.08em;
+            margin: 0;
+        }
+
+        /* ========== フォントサイズ切替ボタン ========== */
+        .font-toggle {
+            position: absolute;
+            top: 50%;
+            left: 14px;
+            transform: translateY(-50%);
+            background: rgba(255, 255, 255, 0.12);
+            border: none;
+            border-radius: 50%;
+            width: 32px;
+            height: 32px;
+            font-size: 0.75rem;
             font-weight: 700;
-            letter-spacing: 0.05em;
+            cursor: pointer;
+            color: #fff;
+            transition: background 0.2s;
+            backdrop-filter: blur(4px);
+        }
+
+        .font-toggle:active {
+            background: rgba(255, 255, 255, 0.25);
         }
 
         .app-header .role-badge {
             display: inline-block;
-            font-size: 0.7rem;
-            background: rgba(255, 255, 255, 0.25);
-            border-radius: 10px;
-            padding: 2px 8px;
+            font-size: 0.68rem;
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 12px;
+            padding: 2px 10px;
             margin-top: 3px;
+        }
+
+        /* ヘッダーゴールドアクセントライン */
+        .header-accent {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #c5a44e, #e8cc6b, #c5a44e);
+        }
+
+        /* ========== ロゴSVG ========== */
+        .header-logo {
+            width: 28px;
+            height: 28px;
+            vertical-align: middle;
+            margin-right: 6px;
+            border-radius: 50%;
         }
 
         /* ========== 共通 ========== */
@@ -73,46 +124,90 @@
         .container {
             max-width: 480px;
             margin: 0 auto;
-            padding: 12px 14px;
+            padding: 14px 16px;
         }
 
-        /* ========== カード ========== */
+        /* ========== カード（ガラスモーフィズム） ========== */
         .card {
-            background: #fff;
-            border-radius: 14px;
-            padding: 16px;
-            margin-bottom: 12px;
-            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+            background: rgba(255, 255, 255, 0.65);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            border-radius: 18px;
+            padding: 18px;
+            margin-bottom: 14px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .card:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 24px rgba(0, 0, 0, 0.1);
         }
 
         .card-title {
-            font-size: 1rem;
+            font-size: 0.95rem;
             font-weight: 700;
-            color: #1b5e20;
-            margin-bottom: 12px;
-            padding-bottom: 8px;
-            border-bottom: 2px solid #e8f5e9;
+            color: #3d6b5a;
+            margin-bottom: 14px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid rgba(91, 168, 140, 0.15);
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
 
-        /* ========== ボタン ========== */
+        .card-title .ct-icon {
+            width: 26px;
+            height: 26px;
+            border-radius: 8px;
+            background: linear-gradient(135deg, #e0f2ec, #c8e6d8);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.82rem;
+            flex-shrink: 0;
+        }
+
+        /* ========== ボタン（リップルエフェクト） ========== */
         .btn {
+            position: relative;
+            overflow: hidden;
             display: block;
             width: 100%;
             padding: 14px 16px;
             border: none;
-            border-radius: 10px;
-            font-size: 1rem;
+            border-radius: 14px;
+            font-size: 0.95rem;
             font-weight: 700;
             cursor: pointer;
             text-align: center;
             margin-top: 8px;
-            transition: opacity 0.15s, transform 0.1s;
-            letter-spacing: 0.03em;
+            transition: transform 0.15s, box-shadow 0.2s;
+            letter-spacing: 0.04em;
+            font-family: inherit;
+        }
+
+        .btn::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            transform: translate(-50%, -50%);
+            transition: width 0.4s, height 0.4s;
+        }
+
+        .btn:active::after {
+            width: 300px;
+            height: 300px;
         }
 
         .btn:active {
-            opacity: 0.75;
-            transform: scale(0.98);
+            transform: scale(0.97);
         }
 
         .btn:disabled {
@@ -121,9 +216,13 @@
         }
 
         .btn-primary {
-            background: linear-gradient(135deg, #2e7d32, #43a047);
+            background: linear-gradient(135deg, #3d6b5a, #5ba88c, #6dbfa3);
             color: #fff;
-            box-shadow: 0 2px 6px rgba(46, 125, 50, 0.35);
+            box-shadow: 0 4px 14px rgba(91, 168, 140, 0.35);
+        }
+
+        .btn-primary:hover {
+            box-shadow: 0 6px 20px rgba(91, 168, 140, 0.45);
         }
 
         .btn-secondary {
@@ -137,47 +236,84 @@
         }
 
         .btn-outline {
-            background: #fff;
-            color: #2e7d32;
-            border: 2px solid #2e7d32;
+            background: rgba(255, 255, 255, 0.7);
+            color: #5ba88c;
+            border: 2px solid #5ba88c;
         }
 
         .btn-small {
             display: inline-block;
             width: auto;
             padding: 8px 14px;
-            font-size: 0.85rem;
+            font-size: 0.82rem;
             margin-top: 6px;
+            border-radius: 10px;
         }
 
-        /* ========== フォーム ========== */
+        /* ========== フォーム（フローティングラベル） ========== */
+        .float-group {
+            position: relative;
+            margin-top: 18px;
+        }
+
+        .float-group label {
+            position: absolute;
+            left: 14px;
+            top: 14px;
+            font-size: 0.85rem;
+            color: #999;
+            font-weight: 500;
+            transition: all 0.2s;
+            pointer-events: none;
+            background: transparent;
+            margin: 0;
+        }
+
+        .float-group input:focus+label,
+        .float-group input:not(:placeholder-shown)+label,
+        .float-group textarea:focus+label,
+        .float-group textarea:not(:placeholder-shown)+label,
+        .float-group select+label,
+        .float-group .label-up {
+            top: -9px;
+            left: 10px;
+            font-size: 0.68rem;
+            color: #5ba88c;
+            font-weight: 700;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 0 6px;
+            border-radius: 4px;
+        }
+
         label {
             display: block;
             font-size: 0.82rem;
-            font-weight: 700;
-            color: #555;
-            margin-top: 12px;
+            font-weight: 600;
+            color: #666;
+            margin-top: 14px;
             margin-bottom: 4px;
         }
 
         input,
         select {
             width: 100%;
-            padding: 12px 14px;
+            padding: 14px 14px;
             border: 1.5px solid #ddd;
-            border-radius: 10px;
-            font-size: 1rem;
-            background: #fafafa;
-            color: #1a1a1a;
+            border-radius: 12px;
+            font-size: 0.95rem;
+            background: rgba(255, 255, 255, 0.7);
+            color: #3d4451;
             appearance: none;
             -webkit-appearance: none;
-            transition: border-color 0.2s;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            font-family: inherit;
         }
 
         input:focus,
         select:focus {
             outline: none;
-            border-color: #2e7d32;
+            border-color: #5ba88c;
+            box-shadow: 0 0 0 3px rgba(91, 168, 140, 0.12);
             background: #fff;
         }
 
@@ -190,43 +326,43 @@
 
         /* ========== メッセージ ========== */
         .msg-error {
-            background: #ffebee;
+            background: #fff0f0;
             color: #c62828;
-            border-left: 4px solid #e53935;
+            border-left: 4px solid #e88b8b;
             padding: 10px 12px;
-            border-radius: 0 8px 8px 0;
+            border-radius: 0 10px 10px 0;
             font-size: 0.88rem;
             margin-top: 8px;
         }
 
         .msg-success {
-            background: #e8f5e9;
-            color: #1b5e20;
-            border-left: 4px solid #43a047;
+            background: #f0f9f4;
+            color: #3d6b5a;
+            border-left: 4px solid #5ba88c;
             padding: 10px 12px;
-            border-radius: 0 8px 8px 0;
+            border-radius: 0 10px 10px 0;
             font-size: 0.88rem;
             margin-top: 8px;
         }
 
         .msg-info {
-            background: #e3f2fd;
-            border-left: 4px solid #1976d2;
+            background: #f0f4f8;
+            border-left: 4px solid #78909c;
             padding: 10px 12px;
-            border-radius: 0 8px 8px 0;
+            border-radius: 0 10px 10px 0;
             font-size: 0.88rem;
             margin-top: 8px;
-            color: #0d47a1;
+            color: #546e7a;
         }
 
         .msg-warn {
-            background: #fff8e1;
-            border-left: 4px solid #f9a825;
+            background: #fdf8ef;
+            border-left: 4px solid #e8cc6b;
             padding: 10px 12px;
-            border-radius: 0 8px 8px 0;
+            border-radius: 0 10px 10px 0;
             font-size: 0.88rem;
             margin-top: 8px;
-            color: #e65100;
+            color: #8b6914;
         }
 
         /* ========== ローディング ========== */
@@ -242,8 +378,8 @@
         .spinner {
             width: 44px;
             height: 44px;
-            border: 4px solid #e8f5e9;
-            border-top-color: #2e7d32;
+            border: 4px solid #e0f2ec;
+            border-top-color: #5ba88c;
             border-radius: 50%;
             animation: spin 0.8s linear infinite;
         }
@@ -259,13 +395,65 @@
             font-size: 0.9rem;
         }
 
+        /* ========== スプラッシュ画面 ========== */
+        .splash-screen {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 50vh;
+            padding: 40px 20px;
+        }
+
+        .splash-logo-text {
+            font-size: 1.6rem;
+            font-weight: 800;
+            color: #3d4451;
+            letter-spacing: 0.12em;
+            margin-top: 12px;
+        }
+
+        .splash-sub {
+            font-size: 0.72rem;
+            color: #999;
+            letter-spacing: 0.08em;
+            margin-top: 4px;
+        }
+
+        .splash-bar {
+            width: 100px;
+            height: 3px;
+            background: rgba(91, 168, 140, 0.2);
+            border-radius: 2px;
+            margin-top: 24px;
+            overflow: hidden;
+        }
+
+        .splash-bar-inner {
+            width: 40%;
+            height: 100%;
+            background: linear-gradient(90deg, #5ba88c, #e8cc6b);
+            border-radius: 2px;
+            animation: splashLoad 1.5s ease-in-out infinite;
+        }
+
+        @keyframes splashLoad {
+            0% {
+                transform: translateX(-100%);
+            }
+
+            100% {
+                transform: translateX(350%);
+            }
+        }
+
         /* ========== タブバー ========== */
         .tab-bar {
             display: flex;
             gap: 6px;
             margin-bottom: 12px;
-            background: #e8f5e9;
-            border-radius: 12px;
+            background: rgba(91, 168, 140, 0.08);
+            border-radius: 14px;
             padding: 4px;
         }
 
@@ -273,18 +461,86 @@
             flex: 1;
             padding: 10px;
             text-align: center;
-            border-radius: 9px;
+            border-radius: 11px;
             cursor: pointer;
-            font-size: 0.88rem;
+            font-size: 0.86rem;
             font-weight: 600;
-            color: #555;
-            transition: all 0.2s;
+            color: #888;
+            transition: all 0.25s;
         }
 
         .tab-bar .tab.active {
-            background: #fff;
-            color: #2e7d32;
-            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12);
+            background: rgba(255, 255, 255, 0.85);
+            color: #5ba88c;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        }
+
+        /* ========== ステップインジケーター ========== */
+        .step-indicator {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0;
+            padding: 16px 24px 4px;
+        }
+
+        .step-dot {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.72rem;
+            font-weight: 700;
+            flex-shrink: 0;
+            transition: all 0.3s;
+        }
+
+        .step-dot.active {
+            background: linear-gradient(135deg, #5ba88c, #6dbfa3);
+            color: #fff;
+            box-shadow: 0 2px 10px rgba(91, 168, 140, 0.4);
+        }
+
+        .step-dot.done {
+            background: #5ba88c;
+            color: #fff;
+        }
+
+        .step-dot.pending {
+            background: #e0e0e0;
+            color: #999;
+        }
+
+        .step-line {
+            height: 3px;
+            width: 36px;
+            background: #e0e0e0;
+            border-radius: 2px;
+        }
+
+        .step-line.done {
+            background: #5ba88c;
+        }
+
+        .step-labels {
+            display: flex;
+            justify-content: space-between;
+            padding: 4px 20px 8px;
+        }
+
+        .step-label {
+            font-size: 0.62rem;
+            color: #aaa;
+            font-weight: 500;
+            text-align: center;
+            flex: 1;
+        }
+
+        .step-label.active {
+            color: #5ba88c;
+            font-weight: 700;
         }
 
         /* ========== スロットボタン ========== */
@@ -293,25 +549,27 @@
             width: 100%;
             padding: 12px 14px;
             margin: 6px 0;
-            border: 1.5px solid #a5d6a7;
-            border-radius: 10px;
-            background: #f1f8e9;
-            color: #1b5e20;
+            border: 1.5px solid rgba(91, 168, 140, 0.3);
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.6);
+            color: #3d6b5a;
             font-size: 0.95rem;
             font-weight: 600;
             cursor: pointer;
             text-align: left;
-            transition: all 0.15s;
+            transition: all 0.2s;
+            font-family: inherit;
         }
 
         .slot-btn:active {
-            background: #c8e6c9;
+            background: rgba(91, 168, 140, 0.15);
         }
 
         .slot-btn.selected {
-            background: linear-gradient(135deg, #2e7d32, #43a047);
+            background: linear-gradient(135deg, #5ba88c, #6dbfa3);
             color: #fff;
-            border-color: #2e7d32;
+            border-color: #5ba88c;
+            box-shadow: 0 2px 8px rgba(91, 168, 140, 0.3);
         }
 
         /* ========== 診断士グループ ========== */
@@ -322,50 +580,58 @@
         .diag-group-title {
             font-size: 0.85rem;
             font-weight: 700;
-            color: #1b5e20;
-            background: #e8f5e9;
+            color: #3d6b5a;
+            background: rgba(91, 168, 140, 0.08);
             padding: 6px 10px;
-            border-radius: 8px;
+            border-radius: 10px;
             margin-bottom: 6px;
         }
 
         /* ========== 予約アイテム ========== */
         .booking-item {
-            border-bottom: 1px solid #f0f0f0;
-            padding: 12px 0;
+            background: rgba(255, 255, 255, 0.5);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            border-radius: 14px;
+            padding: 14px 16px;
+            margin-bottom: 10px;
+            transition: transform 0.2s, box-shadow 0.2s;
         }
 
-        .booking-item:last-child {
-            border-bottom: none;
+        .booking-item:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
         }
 
         .booking-item .bi-name {
             font-weight: 700;
-            font-size: 1rem;
-            margin-bottom: 3px;
+            font-size: 0.95rem;
+            color: #3d4451;
+            margin-bottom: 4px;
         }
 
         .booking-item .bi-step {
             display: inline-block;
-            font-size: 0.72rem;
-            background: #e8f5e9;
-            color: #2e7d32;
+            font-size: 0.68rem;
+            background: linear-gradient(135deg, #e0f2ec, #c8e6d8);
+            color: #3d6b5a;
             border-radius: 6px;
-            padding: 2px 7px;
+            padding: 2px 8px;
             margin-left: 6px;
             font-weight: 700;
         }
 
         .booking-item .bi-sub {
-            font-size: 0.85rem;
-            color: #666;
-            margin-top: 2px;
+            font-size: 0.82rem;
+            color: #777;
+            margin-top: 3px;
         }
 
         .booking-item .bi-actions {
             display: flex;
-            gap: 8px;
-            margin-top: 8px;
+            gap: 6px;
+            margin-top: 10px;
+            flex-wrap: wrap;
         }
 
         .booking-item .bi-actions .btn {
@@ -378,7 +644,7 @@
             justify-content: space-between;
             align-items: center;
             padding: 12px 0;
-            border-bottom: 1px solid #f0f0f0;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
         }
 
         .avail-item:last-child {
@@ -388,7 +654,7 @@
         .avail-time {
             font-size: 0.95rem;
             font-weight: 600;
-            color: #1a1a1a;
+            color: #3d4451;
         }
 
         /* ========== 確認詳細 ========== */
@@ -399,8 +665,8 @@
         }
 
         .confirm-table tr td {
-            padding: 7px 4px;
-            border-bottom: 1px solid #f0f0f0;
+            padding: 8px 4px;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
         }
 
         .confirm-table tr:last-child td {
@@ -408,8 +674,8 @@
         }
 
         .confirm-table td:first-child {
-            font-weight: 700;
-            color: #555;
+            font-weight: 600;
+            color: #777;
             width: 5em;
         }
 
@@ -441,17 +707,18 @@
             flex-shrink: 0;
             width: 40px;
             height: 46px;
-            border: 1.5px solid #a5d6a7;
-            border-radius: 10px;
-            background: #f1f8e9;
-            color: #2e7d32;
+            border: 1.5px solid rgba(91, 168, 140, 0.3);
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.6);
+            color: #5ba88c;
             font-size: 1.1rem;
             cursor: pointer;
             transition: background 0.15s;
+            font-family: inherit;
         }
 
         .btn-nav:active {
-            background: #c8e6c9;
+            background: rgba(91, 168, 140, 0.15);
         }
 
         /* ========== ボトムシート ========== */
@@ -475,10 +742,11 @@
             bottom: 0;
             left: 0;
             right: 0;
-            background: #fff;
-            border-radius: 20px 20px 0 0;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 22px 22px 0 0;
             padding: 8px 16px calc(env(safe-area-inset-bottom) + 24px);
-            box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.18);
+            box-shadow: 0 -4px 30px rgba(0, 0, 0, 0.15);
             z-index: 201;
             transform: translateY(100%);
             transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -501,10 +769,10 @@
         .sheet-title {
             font-size: 1rem;
             font-weight: 700;
-            color: #1b5e20;
+            color: #3d6b5a;
             margin-bottom: 12px;
             padding-bottom: 8px;
-            border-bottom: 2px solid #e8f5e9;
+            border-bottom: 2px solid rgba(91, 168, 140, 0.15);
         }
 
         /* ========== 予約ステータスドット ========== */
@@ -518,15 +786,15 @@
         }
 
         .dot-today {
-            background: #e53935;
+            background: #e88b8b;
         }
 
         .dot-tomorrow {
-            background: #fb8c00;
+            background: #e8cc6b;
         }
 
         .dot-week {
-            background: #43a047;
+            background: #5ba88c;
         }
 
         .dot-later {
@@ -534,21 +802,21 @@
         }
 
         .bi-date-today {
-            color: #c62828;
+            color: #c75050;
             font-weight: 700;
         }
 
         .bi-date-tomorrow {
-            color: #e65100;
+            color: #b8952e;
             font-weight: 600;
         }
 
         .bi-date-week {
-            color: #2e7d32;
+            color: #5ba88c;
         }
 
         .bi-date-later {
-            color: #666;
+            color: #888;
         }
 
         /* ========== コピーボタン ========== */
@@ -557,18 +825,19 @@
             align-items: center;
             gap: 4px;
             padding: 6px 12px;
-            border: 1.5px solid #a5d6a7;
+            border: 1.5px solid rgba(91, 168, 140, 0.3);
             border-radius: 8px;
-            background: #f1f8e9;
-            color: #2e7d32;
+            background: rgba(255, 255, 255, 0.6);
+            color: #5ba88c;
             font-size: 0.82rem;
             font-weight: 600;
             cursor: pointer;
             margin-top: 6px;
+            font-family: inherit;
         }
 
         .btn-copy:active {
-            background: #c8e6c9;
+            background: rgba(91, 168, 140, 0.15);
         }
 
         /* ========== 今日サマリーバー ========== */
@@ -576,35 +845,37 @@
             display: flex;
             align-items: center;
             gap: 8px;
-            background: #e8f5e9;
-            border-radius: 10px;
-            padding: 10px 14px;
-            margin-bottom: 10px;
+            background: rgba(91, 168, 140, 0.08);
+            border-radius: 14px;
+            padding: 12px 16px;
+            margin-bottom: 12px;
             cursor: pointer;
             transition: background 0.15s;
+            border: 1px solid rgba(91, 168, 140, 0.1);
         }
 
         .today-summary:active {
-            background: #c8e6c9;
+            background: rgba(91, 168, 140, 0.15);
         }
 
         .today-summary .ts-count {
             font-size: 1.1rem;
-            font-weight: 700;
-            color: #1b5e20;
+            font-weight: 800;
+            color: #5ba88c;
         }
 
         .today-summary .ts-label {
             font-size: 0.85rem;
-            color: #555;
+            color: #777;
             flex: 1;
         }
 
-        /* ========== 店舗名バッジ（ヘッダー） ========== */
+        /* ========== 店舗名バッジ ========== */
         .salon-badge {
-            font-size: 0.72rem;
+            display: inline-block;
+            font-size: 0.68rem;
             color: rgba(255, 255, 255, 0.8);
-            margin-top: 1px;
+            margin-top: 2px;
         }
 
         /* ========== ダークモード トグルボタン ========== */
@@ -613,7 +884,7 @@
             top: 50%;
             right: 14px;
             transform: translateY(-50%);
-            background: rgba(255, 255, 255, 0.15);
+            background: rgba(255, 255, 255, 0.12);
             border: none;
             border-radius: 50%;
             width: 32px;
@@ -622,10 +893,11 @@
             cursor: pointer;
             color: #fff;
             transition: background 0.2s;
+            backdrop-filter: blur(4px);
         }
 
         .dark-toggle:active {
-            background: rgba(255, 255, 255, 0.3);
+            background: rgba(255, 255, 255, 0.25);
         }
 
         /* ========== スケルトンローディング ========== */
@@ -640,16 +912,16 @@
         }
 
         .skeleton-item {
-            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+            background: linear-gradient(90deg, rgba(91, 168, 140, 0.05) 25%, rgba(91, 168, 140, 0.1) 50%, rgba(91, 168, 140, 0.05) 75%);
             background-size: 400px 100%;
             animation: shimmer 1.4s infinite linear;
-            border-radius: 10px;
+            border-radius: 14px;
             height: 84px;
             margin-bottom: 10px;
         }
 
         .skeleton-line {
-            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+            background: linear-gradient(90deg, rgba(91, 168, 140, 0.05) 25%, rgba(91, 168, 140, 0.1) 50%, rgba(91, 168, 140, 0.05) 75%);
             background-size: 400px 100%;
             animation: shimmer 1.4s infinite linear;
             border-radius: 6px;
@@ -670,7 +942,7 @@
             text-align: center;
             padding: 10px;
             font-size: 0.85rem;
-            color: #666;
+            color: #888;
             transition: height 0.2s;
             overflow: hidden;
             height: 0;
@@ -683,7 +955,7 @@
         /* ========== 診断士フィルター ========== */
         .diag-filter-label {
             font-size: 0.8rem;
-            color: #555;
+            color: #777;
             margin-top: 10px;
             margin-bottom: 2px;
         }
@@ -691,7 +963,7 @@
         /* ========== 顧客履歴モーダル ========== */
         #historySheet .history-item {
             padding: 10px 0;
-            border-bottom: 1px solid #eee;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
             font-size: 0.88rem;
         }
 
@@ -704,8 +976,8 @@
             font-size: 0.72rem;
             padding: 1px 7px;
             border-radius: 10px;
-            background: #e8f5e9;
-            color: #2e7d32;
+            background: rgba(91, 168, 140, 0.1);
+            color: #5ba88c;
             font-weight: 700;
             margin-left: 5px;
         }
@@ -719,22 +991,24 @@
         }
 
         .stat-card {
-            background: #f1f8e9;
-            border-radius: 12px;
-            padding: 12px 10px;
+            background: rgba(255, 255, 255, 0.5);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            border-radius: 14px;
+            padding: 14px 10px;
             text-align: center;
         }
 
         .stat-value {
             font-size: 1.7rem;
             font-weight: 800;
-            color: #1b5e20;
+            color: #5ba88c;
             line-height: 1;
         }
 
         .stat-label {
             font-size: 0.72rem;
-            color: #555;
+            color: #888;
             margin-top: 4px;
         }
 
@@ -750,8 +1024,8 @@
         .week-day {
             flex-shrink: 0;
             width: 44px;
-            border-radius: 10px;
-            background: #f1f8e9;
+            border-radius: 12px;
+            background: rgba(91, 168, 140, 0.06);
             padding: 6px 4px;
             text-align: center;
             cursor: pointer;
@@ -759,33 +1033,33 @@
         }
 
         .week-day:active {
-            background: #c8e6c9;
+            background: rgba(91, 168, 140, 0.15);
         }
 
         .week-day .wd-date {
             font-size: 0.65rem;
-            color: #666;
+            color: #888;
         }
 
         .week-day .wd-dow {
             font-size: 0.8rem;
             font-weight: 700;
-            color: #1b5e20;
+            color: #5ba88c;
         }
 
         .week-day .wd-slots {
             font-size: 0.65rem;
-            color: #388e3c;
+            color: #6dbfa3;
             margin-top: 3px;
         }
 
         .week-day.wd-today {
-            background: #c8e6c9;
-            border: 2px solid #2e7d32;
+            background: rgba(91, 168, 140, 0.15);
+            border: 2px solid #5ba88c;
         }
 
         .week-day.wd-selected {
-            background: #2e7d32;
+            background: linear-gradient(135deg, #5ba88c, #6dbfa3);
         }
 
         .week-day.wd-selected .wd-dow,
@@ -797,7 +1071,7 @@
         /* ========== LINEプレビュー ========== */
         .line-preview {
             background: #06c755;
-            border-radius: 12px;
+            border-radius: 14px;
             padding: 10px 12px;
             margin-top: 10px;
             color: #fff;
@@ -807,7 +1081,7 @@
 
         .line-preview-label {
             font-size: 0.72rem;
-            color: #666;
+            color: #888;
             margin-top: 10px;
             margin-bottom: 2px;
             font-weight: 600;
@@ -819,194 +1093,19 @@
             align-items: center;
             gap: 5px;
             padding: 8px 14px;
-            border: 1.5px solid #e57373;
-            border-radius: 8px;
-            background: #fff;
-            color: #c62828;
+            border: 1.5px solid #e88b8b;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.7);
+            color: #c75050;
             font-size: 0.85rem;
             font-weight: 600;
             cursor: pointer;
             margin-top: 8px;
+            font-family: inherit;
         }
 
         .btn-retry:active {
-            background: #ffebee;
-        }
-
-        /* ========== ダークモード ========== */
-        @media (prefers-color-scheme: dark) {
-            body {
-                background: #121212;
-                color: #e0e0e0;
-            }
-
-            .card {
-                background: #1e1e1e;
-                box-shadow: none;
-                border: 1px solid #333;
-            }
-
-            input,
-            select,
-            textarea {
-                background: #2c2c2c;
-                border-color: #444;
-                color: #e0e0e0;
-            }
-
-            .tab-bar {
-                background: #1e1e1e;
-            }
-
-            .tab {
-                color: #999;
-            }
-
-            .tab.active {
-                color: #66bb6a;
-                border-bottom-color: #66bb6a;
-            }
-
-            .booking-item {
-                border-color: #333;
-            }
-
-            .bi-name {
-                color: #e0e0e0;
-            }
-
-            .bi-sub {
-                color: #aaa;
-            }
-
-            .slot-btn {
-                background: #2c2c2c;
-                border-color: #444;
-                color: #e0e0e0;
-            }
-
-            .slot-btn.selected {
-                background: #1b5e20;
-                border-color: #2e7d32;
-            }
-
-            .diag-group-title {
-                background: #1a2e1a;
-                color: #a5d6a7;
-            }
-
-            .today-summary {
-                background: #1a2e1a;
-            }
-
-            .today-summary .ts-count {
-                color: #81c784;
-            }
-
-            .skeleton-item,
-            .skeleton-line {
-                background: linear-gradient(90deg, #2c2c2c 25%, #383838 50%, #2c2c2c 75%);
-            }
-
-            .bottom-sheet {
-                background: #1e1e1e;
-            }
-
-            .stat-card {
-                background: #1a2e1a;
-            }
-
-            .week-day {
-                background: #1a2e1a;
-            }
-
-            .week-day.wd-today {
-                border-color: #66bb6a;
-                background: #1b3a1b;
-            }
-        }
-
-        /* ダークモード: 手動トグルで追加 */
-        body.dark {
-            background: #121212;
-            color: #e0e0e0;
-        }
-
-        body.dark .card {
-            background: #1e1e1e;
-            box-shadow: none;
-            border: 1px solid #333;
-        }
-
-        body.dark input,
-        body.dark select {
-            background: #2c2c2c;
-            border-color: #444;
-            color: #e0e0e0;
-        }
-
-        body.dark .tab-bar {
-            background: #1e1e1e;
-        }
-
-        body.dark .tab {
-            color: #999;
-        }
-
-        body.dark .tab.active {
-            color: #66bb6a;
-            border-bottom-color: #66bb6a;
-        }
-
-        body.dark .booking-item {
-            border-color: #333;
-        }
-
-        body.dark .bi-name {
-            color: #e0e0e0;
-        }
-
-        body.dark .bi-sub {
-            color: #aaa;
-        }
-
-        body.dark .slot-btn {
-            background: #2c2c2c;
-            border-color: #444;
-            color: #e0e0e0;
-        }
-
-        body.dark .slot-btn.selected {
-            background: #1b5e20;
-            border-color: #2e7d32;
-        }
-
-        body.dark .diag-group-title {
-            background: #1a2e1a;
-            color: #a5d6a7;
-        }
-
-        body.dark .today-summary {
-            background: #1a2e1a;
-        }
-
-        body.dark .skeleton-item,
-        body.dark .skeleton-line {
-            background: linear-gradient(90deg, #2c2c2c 25%, #383838 50%, #2c2c2c 75%);
-            background-size: 400px 100%;
-            animation: shimmer 1.4s infinite linear;
-        }
-
-        body.dark .bottom-sheet {
-            background: #1e1e1e;
-        }
-
-        body.dark .stat-card {
-            background: #1a2e1a;
-        }
-
-        body.dark .week-day {
-            background: #1a2e1a;
+            background: #fff0f0;
         }
 
         /* ========== メモ欄 ========== */
@@ -1014,24 +1113,31 @@
             width: 100%;
             min-height: 50px;
             max-height: 100px;
-            padding: 8px 10px;
-            border: 1.5px solid #bbb;
-            border-radius: 10px;
+            padding: 10px 12px;
+            border: 1.5px solid #ddd;
+            border-radius: 12px;
             font-size: 0.9rem;
             resize: vertical;
             font-family: inherit;
+            background: rgba(255, 255, 255, 0.7);
+            color: #3d4451;
+            transition: border-color 0.2s, box-shadow 0.2s;
         }
 
         .memo-area:focus {
-            border-color: #2e7d32;
+            border-color: #5ba88c;
+            box-shadow: 0 0 0 3px rgba(91, 168, 140, 0.12);
             outline: none;
         }
 
         .bi-memo {
             font-size: 0.78rem;
-            color: #666;
-            margin-top: 2px;
+            color: #888;
+            margin-top: 4px;
             white-space: pre-wrap;
+            padding: 4px 8px;
+            background: rgba(0, 0, 0, 0.02);
+            border-radius: 6px;
         }
 
         /* ========== フィルタバー ========== */
@@ -1043,40 +1149,45 @@
         }
 
         .filter-chip {
-            padding: 5px 12px;
+            padding: 6px 14px;
             border-radius: 20px;
-            border: 1.5px solid #2e7d32;
-            background: #fff;
-            color: #2e7d32;
-            font-size: 0.8rem;
+            border: 1.5px solid rgba(91, 168, 140, 0.3);
+            background: rgba(255, 255, 255, 0.6);
+            color: #5ba88c;
+            font-size: 0.78rem;
             font-weight: 600;
             cursor: pointer;
-            transition: all 0.15s;
+            transition: all 0.2s;
+            font-family: inherit;
         }
 
         .filter-chip.active {
-            background: #2e7d32;
+            background: linear-gradient(135deg, #5ba88c, #6dbfa3);
             color: #fff;
+            border-color: transparent;
+            box-shadow: 0 2px 8px rgba(91, 168, 140, 0.3);
         }
 
         .sort-btn {
             margin-left: auto;
-            padding: 5px 10px;
+            padding: 6px 12px;
             border-radius: 20px;
-            border: 1.5px solid #888;
-            background: #fff;
-            color: #555;
-            font-size: 0.78rem;
+            border: 1.5px solid #ddd;
+            background: rgba(255, 255, 255, 0.6);
+            color: #777;
+            font-size: 0.76rem;
             cursor: pointer;
+            font-family: inherit;
         }
 
         /* ========== 長押しメニュー ========== */
         .ctx-menu {
             position: fixed;
             z-index: 2000;
-            background: #fff;
-            border-radius: 14px;
-            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.22);
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 16px;
+            box-shadow: 0 8px 40px rgba(0, 0, 0, 0.18);
             min-width: 180px;
             padding: 6px 0;
             display: none;
@@ -1106,17 +1217,19 @@
             border: none;
             background: none;
             text-align: left;
-            font-size: 0.9rem;
+            font-size: 0.88rem;
             cursor: pointer;
-            color: #333;
+            color: #3d4451;
+            font-family: inherit;
+            transition: background 0.15s;
         }
 
         .ctx-item:active {
-            background: #f0f0f0;
+            background: rgba(91, 168, 140, 0.08);
         }
 
         .ctx-item.danger {
-            color: #e53935;
+            color: #c75050;
         }
 
         .ctx-overlay {
@@ -1136,7 +1249,7 @@
             top: 50%;
             right: 52px;
             transform: translateY(-50%);
-            background: rgba(255, 255, 255, 0.18);
+            background: rgba(255, 255, 255, 0.12);
             border: none;
             color: #fff;
             border-radius: 50%;
@@ -1145,6 +1258,7 @@
             font-size: 0.7rem;
             font-weight: 700;
             cursor: pointer;
+            backdrop-filter: blur(4px);
         }
 
         body.font-lg {
@@ -1204,32 +1318,32 @@
             text-align: center;
             font-size: 0.7rem;
             font-weight: 700;
-            color: #555;
+            color: #888;
             padding: 4px 0;
         }
 
         .avail-cal-cell {
             text-align: center;
             padding: 6px 2px;
-            border-radius: 8px;
+            border-radius: 10px;
             font-size: 0.78rem;
-            background: #f5f5f5;
+            background: rgba(0, 0, 0, 0.02);
             min-height: 38px;
         }
 
         .avail-cal-cell.has-avail {
-            background: #c8e6c9;
+            background: rgba(91, 168, 140, 0.15);
             font-weight: 700;
-            color: #1b5e20;
+            color: #3d6b5a;
         }
 
         .avail-cal-cell.today {
-            border: 2px solid #2e7d32;
+            border: 2px solid #5ba88c;
         }
 
         .avail-cal-cell .ac-count {
             font-size: 0.65rem;
-            color: #2e7d32;
+            color: #5ba88c;
         }
 
         .avail-cal-nav {
@@ -1246,8 +1360,8 @@
 
         /* ========== オフラインバナー ========== */
         .offline-banner {
-            background: #ff9800;
-            color: #fff;
+            background: linear-gradient(135deg, #e8cc6b, #d4b85c);
+            color: #3d4451;
             text-align: center;
             padding: 8px;
             font-size: 0.82rem;
@@ -1259,80 +1373,494 @@
             display: block;
         }
 
-        /* ========== ダークモード追加分 ========== */
+
+        /* ========== 空状態 ========== */
+        .empty-state {
+            text-align: center;
+            padding: 32px 20px;
+        }
+
+        .empty-illustration {
+            width: 100px;
+            height: 100px;
+            margin: 0 auto 16px;
+            background: linear-gradient(160deg, #e0f2ec, rgba(232, 204, 107, 0.15));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.8rem;
+        }
+
+        .empty-state h3 {
+            font-size: 0.95rem;
+            color: #777;
+            font-weight: 700;
+            margin-bottom: 6px;
+        }
+
+        .empty-state p {
+            font-size: 0.8rem;
+            color: #aaa;
+        }
+
+        /* ========== ページ遷移アニメーション ========== */
+        .page-enter {
+            animation: slideIn 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(24px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        /* ========== レスポンシブ: タブレット/PC 2カラム ========== */
+        @media (min-width: 768px) {
+            .container {
+                max-width: 760px;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(4, 1fr);
+            }
+
+            #staffList .card:has(#bookingsList) {
+                display: block;
+            }
+        }
+
+        @media (min-width: 1024px) {
+            .container {
+                max-width: 960px;
+            }
+
+            body {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .app-header {
+                max-width: 100%;
+            }
+        }
+
+        /* ========== ダークモード: OS設定連動 ========== */
+        @media (prefers-color-scheme: dark) {
+            body {
+                background: linear-gradient(160deg, #1a1a1a 0%, #121212 50%, #181818 100%);
+                color: #e0e0e0;
+            }
+
+            .card {
+                background: rgba(40, 40, 40, 0.7);
+                border-color: rgba(255, 255, 255, 0.06);
+                box-shadow: none;
+            }
+
+            input,
+            select,
+            textarea {
+                background: rgba(40, 40, 40, 0.7);
+                border-color: rgba(255, 255, 255, 0.12);
+                color: #e0e0e0;
+            }
+
+            .tab-bar {
+                background: rgba(40, 40, 40, 0.5);
+            }
+
+            .tab {
+                color: #888;
+            }
+
+            .tab.active {
+                color: #7cc9a8;
+                background: rgba(60, 60, 60, 0.8);
+            }
+
+            .booking-item {
+                background: rgba(40, 40, 40, 0.6);
+                border-color: rgba(255, 255, 255, 0.06);
+            }
+
+            .bi-name {
+                color: #e0e0e0;
+            }
+
+            .bi-sub {
+                color: #aaa;
+            }
+
+            .slot-btn {
+                background: rgba(40, 40, 40, 0.7);
+                border-color: rgba(255, 255, 255, 0.1);
+                color: #e0e0e0;
+            }
+
+            .slot-btn.selected {
+                background: linear-gradient(135deg, #3d6b5a, #5ba88c);
+                border-color: #5ba88c;
+            }
+
+            .diag-group-title {
+                background: rgba(91, 168, 140, 0.1);
+                color: #7cc9a8;
+            }
+
+            .today-summary {
+                background: rgba(91, 168, 140, 0.08);
+            }
+
+            .today-summary .ts-count {
+                color: #7cc9a8;
+            }
+
+            .skeleton-item,
+            .skeleton-line {
+                background: linear-gradient(90deg, #2c2c2c 25%, #383838 50%, #2c2c2c 75%);
+            }
+
+            .bottom-sheet {
+                background: rgba(30, 30, 30, 0.95);
+            }
+
+            .stat-card {
+                background: rgba(40, 40, 40, 0.7);
+                border-color: rgba(255, 255, 255, 0.06);
+            }
+
+            .stat-value {
+                color: #7cc9a8;
+            }
+
+            .week-day {
+                background: rgba(91, 168, 140, 0.08);
+            }
+
+            .week-day.wd-today {
+                border-color: #7cc9a8;
+                background: rgba(91, 168, 140, 0.12);
+            }
+
+            .card-title {
+                color: #7cc9a8;
+                border-bottom-color: rgba(124, 201, 168, 0.15);
+            }
+        }
+
+        /* ========== ダークモード: 手動トグル ========== */
+        body.dark {
+            background: linear-gradient(160deg, #1a1a1a 0%, #121212 50%, #181818 100%);
+            color: #e0e0e0;
+        }
+
+        body.dark .card {
+            background: rgba(40, 40, 40, 0.7);
+            border-color: rgba(255, 255, 255, 0.06);
+            box-shadow: none;
+        }
+
+        body.dark input,
+        body.dark select {
+            background: rgba(40, 40, 40, 0.7);
+            border-color: rgba(255, 255, 255, 0.12);
+            color: #e0e0e0;
+        }
+
+        body.dark .tab-bar {
+            background: rgba(40, 40, 40, 0.5);
+        }
+
+        body.dark .tab {
+            color: #888;
+        }
+
+        body.dark .tab.active {
+            color: #7cc9a8;
+            background: rgba(60, 60, 60, 0.8);
+        }
+
+        body.dark .booking-item {
+            background: rgba(40, 40, 40, 0.6);
+            border-color: rgba(255, 255, 255, 0.06);
+        }
+
+        body.dark .bi-name {
+            color: #e0e0e0;
+        }
+
+        body.dark .bi-sub {
+            color: #aaa;
+        }
+
+        body.dark .slot-btn {
+            background: rgba(40, 40, 40, 0.7);
+            border-color: rgba(255, 255, 255, 0.1);
+            color: #e0e0e0;
+        }
+
+        body.dark .slot-btn.selected {
+            background: linear-gradient(135deg, #3d6b5a, #5ba88c);
+            border-color: #5ba88c;
+        }
+
+        body.dark .diag-group-title {
+            background: rgba(91, 168, 140, 0.1);
+            color: #7cc9a8;
+        }
+
+        body.dark .today-summary {
+            background: rgba(91, 168, 140, 0.08);
+        }
+
+        body.dark .skeleton-item,
+        body.dark .skeleton-line {
+            background: linear-gradient(90deg, #2c2c2c 25%, #383838 50%, #2c2c2c 75%);
+            background-size: 400px 100%;
+            animation: shimmer 1.4s infinite linear;
+        }
+
+        body.dark .bottom-sheet {
+            background: rgba(30, 30, 30, 0.95);
+        }
+
+        body.dark .stat-card {
+            background: rgba(40, 40, 40, 0.7);
+            border-color: rgba(255, 255, 255, 0.06);
+        }
+
+        body.dark .stat-value {
+            color: #7cc9a8;
+        }
+
+        body.dark .week-day {
+            background: rgba(91, 168, 140, 0.08);
+        }
+
+        body.dark .week-day.wd-today {
+            border-color: #7cc9a8;
+            background: rgba(91, 168, 140, 0.12);
+        }
+
+        body.dark .card-title {
+            color: #7cc9a8;
+            border-bottom-color: rgba(124, 201, 168, 0.15);
+        }
+
+        body.dark .sheet-title {
+            color: #7cc9a8;
+            border-bottom-color: rgba(124, 201, 168, 0.15);
+        }
+
         body.dark .memo-area {
-            background: #2c2c2c;
-            border-color: #555;
-            color: #eee;
+            background: rgba(40, 40, 40, 0.7);
+            border-color: rgba(255, 255, 255, 0.12);
+            color: #e0e0e0;
         }
 
         body.dark .filter-chip {
-            background: #2c2c2c;
-            color: #81c784;
-            border-color: #81c784;
+            background: rgba(40, 40, 40, 0.6);
+            border-color: rgba(124, 201, 168, 0.2);
+            color: #7cc9a8;
         }
 
         body.dark .filter-chip.active {
-            background: #1b5e20;
+            background: linear-gradient(135deg, #3d6b5a, #5ba88c);
             color: #fff;
         }
 
         body.dark .sort-btn {
-            background: #2c2c2c;
-            border-color: #666;
-            color: #ccc;
+            background: rgba(40, 40, 40, 0.6);
+            border-color: rgba(255, 255, 255, 0.1);
+            color: #999;
         }
 
         body.dark .ctx-menu {
-            background: #2c2c2c;
+            background: rgba(40, 40, 40, 0.95);
         }
 
         body.dark .ctx-item {
-            color: #eee;
+            color: #e0e0e0;
         }
 
         body.dark .ctx-item:active {
-            background: #383838;
+            background: rgba(91, 168, 140, 0.1);
         }
 
         body.dark .avail-cal-cell {
-            background: #2c2c2c;
+            background: rgba(40, 40, 40, 0.5);
             color: #ccc;
         }
 
         body.dark .avail-cal-cell.has-avail {
-            background: #1a3d1a;
-            color: #81c784;
+            background: rgba(91, 168, 140, 0.15);
+            color: #7cc9a8;
+        }
+
+        body.dark .msg-success {
+            background: rgba(91, 168, 140, 0.1);
+            color: #7cc9a8;
+            border-left-color: #5ba88c;
+        }
+
+        body.dark .msg-error {
+            background: rgba(232, 139, 139, 0.1);
+            color: #e88b8b;
+            border-left-color: #e88b8b;
+        }
+
+        body.dark .msg-info {
+            background: rgba(120, 144, 156, 0.1);
+            color: #b0bec5;
+            border-left-color: #78909c;
+        }
+
+        body.dark .fab {
+            background: linear-gradient(135deg, #3d6b5a, #5ba88c);
+        }
+
+        /* ========== FABボタン ========== */
+        .fab {
+            position: fixed;
+            right: 20px;
+            bottom: calc(env(safe-area-inset-bottom) + 20px);
+            width: 54px;
+            height: 54px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #5ba88c, #3d6b5a);
+            color: #fff;
+            font-size: 1.4rem;
+            border: none;
+            cursor: pointer;
+            box-shadow: 0 4px 20px rgba(91, 168, 140, 0.5);
+            z-index: 150;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .fab:active {
+            transform: scale(0.9);
+        }
+
+        /* ========== スプラッシュフェードアウト ========== */
+        @keyframes splashFadeOut {
+            0% {
+                opacity: 1;
+            }
+
+            100% {
+                opacity: 0;
+            }
+        }
+
+        .splash-hiding {
+            animation: splashFadeOut 0.6s ease forwards;
+        }
+
+        /* ========== タブレット2カラム ========== */
+        @media (min-width: 768px) {
+            .container {
+                max-width: 900px;
+                padding: 18px 28px;
+            }
+
+            #screenStaff,
+            #screenDiag {
+                max-width: 900px;
+                margin: 0 auto;
+                padding: 18px 28px;
+            }
+
+            .card {
+                border-radius: 22px;
+            }
         }
     </style>
 </head>
 
 <body>
-
     <!-- ========== ヘッダー ========== -->
     <div class="app-header" style="position:relative">
-        <h1>MYTONE 予約システム</h1>
+        <svg class="header-logo" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 44 44" width="30" height="30"
+            aria-label="MYTONE">
+            <!-- 背景円 -->
+            <circle cx="22" cy="22" r="21" fill="#fff" />
+            <!-- ティール色セグメント（上〜右上）-->
+            <path d="M22,22 L22,2 A20,20 0 0,1 38.7,32 Z" fill="#5ba88c" />
+            <!-- ピンク色セグメント（右下）-->
+            <path d="M22,22 L38.7,32 A20,20 0 0,1 10,38.6 Z" fill="#e88b8b" />
+            <!-- ゴールド色セグメント（左〜上）-->
+            <path d="M22,22 L10,38.6 A20,20 0 0,1 22,2 Z" fill="#e8cc6b" />
+            <!-- 女性シルエット（白） -->
+            <ellipse cx="22" cy="16" rx="5" ry="6" fill="rgba(255,255,255,0.92)" />
+            <path d="M15,30 Q16,24 22,24 Q28,24 29,30 Z" fill="rgba(255,255,255,0.92)" />
+        </svg>
+        <h1 class="header-title">MYTONE 予約システム</h1>
         <div id="salonBadge" class="salon-badge hidden"></div>
         <div id="roleBadge" class="role-badge hidden"></div>
         <button class="font-toggle" onclick="toggleFontSize()">Aa</button>
         <button class="dark-toggle" onclick="toggleDarkMode()">&#127769;</button>
+        <div class="header-accent"></div>
     </div>
-
     <!-- オフラインバナー -->
     <div id="offlineBanner" class="offline-banner">⚠️ オフラインです。最後に取得したデータを表示しています。</div>
-
     <!-- プルトゥリフレッシュインジケーター -->
     <div id="pullIndicator">&#8595; 引っ張って更新</div>
 
-    <!-- ========== 初期化中 ========== -->
-    <div id="screenLoading" class="container">
-        <div class="loading-screen">
-            <div class="spinner"></div>
-            <div class="loading-text">読み込み中...</div>
+    <!--==========スプラッシュ画面==========-->
+    <div id="screenSplash"
+        style="position:fixed;inset:0;background:linear-gradient(160deg,#f0f5f2 0%,#faf8f5 50%,#f5f0eb 100%);z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="110" height="110">
+            <circle cx="60" cy="60" r="58" fill="#fff" opacity="0.92" />
+            <path d="M60,60 L60,4 A56,56 0 0,1 102.5,82 Z" fill="#5ba88c" />
+            <path d="M60,60 L102.5,82 A56,56 0 0,1 26,103 Z" fill="#e88b8b" />
+            <path d="M60,60 L26,103 A56,56 0 0,1 60,4 Z" fill="#e8cc6b" />
+            <ellipse cx="60" cy="46" rx="13" ry="15" fill="rgba(255,255,255,0.93)" />
+            <path d="M42,82 Q44,65 60,65 Q76,65 78,82 Z" fill="rgba(255,255,255,0.93)" />
+        </svg>
+        <div
+            style="font-size:1.8rem;font-weight:900;color:#3d4451;letter-spacing:0.15em;margin-top:18px;font-family:'Noto Sans JP',sans-serif">
+            MY TONE</div>
+        <div
+            style="font-size:0.72rem;color:#888;letter-spacing:0.12em;margin-top:4px;font-family:'Noto Sans JP',sans-serif">
+            マイトーン予約システム</div>
+        <div
+            style="font-size:0.58rem;color:#bbb;letter-spacing:0.18em;margin-top:2px;font-family:'Noto Sans JP',sans-serif;text-transform:uppercase">
+            beauty salon reservation</div>
+        <div
+            style="width:110px;height:3px;background:rgba(91,168,140,0.2);border-radius:2px;margin-top:28px;overflow:hidden">
+            <div
+                style="width:40%;height:100%;background:linear-gradient(90deg,#5ba88c,#e8cc6b);border-radius:2px;animation:splashLoad 1.5s ease-in-out infinite">
+            </div>
         </div>
     </div>
 
-    <!-- ========== 未登録画面 ========== -->
+
+
+
+    <!--==========初期化中==========-->
+    <div id="screenLoading" class="container">
+        <div class="loading-screen">
+            <div class="spinner"></div>
+            <div class="loading-text">&#35501;
+                &#12415;
+                &#36796;
+                &#12415;
+                &#20013;
+                ...</div>
+        </div>
+    </div>
+    <!--==========未登録画面==========-->
     <div id="screenRegister" class="container hidden">
         <div class="register-hero">
             <div class="icon">👤</div>
@@ -1343,107 +1871,92 @@
                 <div class="tab active" onclick="switchRegTab('staff')">スタッフ登録</div>
                 <div class="tab" onclick="switchRegTab('diag')">診断士登録</div>
             </div>
-            <div id="regStaff">
-                <label>店舗コード</label>
-                <input id="regSalonCode" placeholder="例: S00001" autocomplete="off">
-                <button class="btn btn-primary" onclick="doLinkSalon()">登録する</button>
+            <div id="regStaff"><label>店舗コード</label><input id="regSalonCode" placeholder="例: S00001"
+                    autocomplete="off"><button class="btn btn-primary" onclick="doLinkSalon()">登録する</button>
             </div>
-            <div id="regDiag" class="hidden">
-                <label>診断士ID</label>
-                <input id="regDiagId" placeholder="例: D00001" autocomplete="off">
-                <button class="btn btn-primary" onclick="doLinkDiag()">登録する</button>
+            <div id="regDiag" class="hidden"><label>診断士ID</label><input id="regDiagId" placeholder="例: D00001"
+                    autocomplete="off"><button class="btn btn-primary" onclick="doLinkDiag()">登録する</button>
             </div>
             <div id="regMsg"></div>
         </div>
     </div>
-
-    <!-- ========== スタッフ画面 ========== -->
+    <!--==========スタッフ画面==========-->
     <div id="screenStaff" class="container hidden">
         <div class="tab-bar" id="staffTabs">
             <div class="tab active" onclick="switchStaffTab('new')">新規予約</div>
             <div class="tab" onclick="switchStaffTab('list')">予約一覧</div>
         </div>
-
         <!-- 新規予約 -->
         <div id="staffNew">
             <!-- 今日のサマリーバー -->
             <div id="todaySummary" class="today-summary hidden" onclick="switchStaffTab('list')">
-                <span>📅</span>
-                <span class="ts-count" id="todayCount">0</span>
-                <span class="ts-label">本日の予約 › 一覧へ</span>
+                <span>📅</span><span class="ts-count" id="todayCount">0</span><span class="ts-label">本日の予約 › 一覧へ</span>
             </div>
             <!-- Step種別選択 -->
             <div class="card" id="stepSelect">
-                <div class="card-title">予約種別を選択</div>
-                <button class="btn btn-primary" onclick="startStep('STEP1')">📋 STEP1 初回診断</button>
-                <button class="btn btn-outline" onclick="startStep2Search()" style="margin-top:10px">🔄 STEP2
-                    フォロー診断</button>
+                <div class="card-title">予約種別を選択</div><button class="btn btn-primary" onclick="startStep('STEP1')">📋
+                    STEP1 初回診断</button><button class="btn btn-outline" onclick="startStep2Search()"
+                    style="margin-top:10px">🔄 STEP2 フォロー診断</button>
             </div>
-
             <!-- STEP2: 親STEP1検索 -->
             <div class="card hidden" id="step2ParentSearch">
                 <div class="card-title">STEP2: 親 STEP1 を検索</div>
-                <label>顧客電話番号</label>
-                <input id="s2Phone" type="tel" placeholder="09012345678">
-                <button class="btn btn-primary" onclick="doFindParent()">検索</button>
+                <label>顧客電話番号</label><input id="s2Phone" type="tel" placeholder="09012345678"><button
+                    class="btn btn-primary" onclick="doFindParent()">検索</button>
                 <div id="s2ParentList"></div>
-                <div id="s2Msg"></div>
-                <button class="btn btn-outline" onclick="resetNewBooking()" style="margin-top:10px">← 戻る</button>
+                <div id="s2Msg"></div><button class="btn btn-outline" onclick="resetNewBooking()"
+                    style="margin-top:10px">←
+                    戻る</button>
             </div>
-
             <!-- 顧客情報入力 -->
             <div class="card hidden" id="custInfo">
-                <div class="card-title" id="custStepLabel"></div>
-                <label>顧客名 <span style="color:#e53935">*</span></label>
-                <input id="custName" placeholder="山田 太郎">
-                <label>電話番号 <span style="color:#e53935">*</span></label>
-                <input id="custPhone" type="tel" placeholder="09012345678">
+                <div class="card-title" id="custStepLabel"></div><label>顧客名
+                    <span style="color:#e53935">*</span></label><input id="custName" placeholder="山田 太郎"><label>電話番号
+                    <span style="color:#e53935">*</span></label><input id="custPhone" type="tel"
+                    placeholder="09012345678">
                 <!-- 過去顧客名オートフィル提案 -->
-                <div id="custNameSuggest" class="hidden" style="margin-top:4px"></div>
-                <label>性別</label>
-                <select id="custGender">
+                <div id="custNameSuggest" class="hidden" style="margin-top:4px">
+                </div>
+                <label>性別</label><select id="custGender">
                     <option value="">未選択</option>
                     <option>男性</option>
                     <option>女性</option>
                     <option>その他</option>
-                </select>
-                <label>年齢</label>
-                <input id="custAge" type="number" placeholder="30" min="0" max="120">
-                <label>メモ（任意）</label>
-                <textarea id="custMemo" class="memo-area" placeholder="例: カラー希望、前回の相談内容など"></textarea>
-                <button class="btn btn-primary" onclick="goToDateInput()" style="margin-top:14px">次へ: 日にち選択 →</button>
-                <button class="btn btn-outline" onclick="resetNewBooking()" style="margin-top:8px">← 戻る</button>
-                <button class="btn btn-secondary" onclick="doViewHistory()" style="margin-top:8px;font-size:0.82rem">📞
+                </select><label>年齢</label><input id="custAge" type="number" placeholder="30" min="0"
+                    max="120"><label>メモ（任意）</label><textarea id="custMemo" class="memo-area"
+                    placeholder="例: カラー希望、前回の相談内容など"></textarea><button class="btn btn-primary"
+                    onclick="goToDateInput()" style="margin-top:14px">次へ: 日にち選択 →</button><button
+                    class="btn btn-outline" onclick="resetNewBooking()" style="margin-top:8px">← 戻る</button><button
+                    class="btn btn-secondary" onclick="doViewHistory()" style="margin-top:8px;font-size:0.82rem">📞
                     過去の予約を確認</button>
             </div>
-
             <!-- 日付入力＋空き検索 -->
             <div class="card hidden" id="dateSearch">
                 <div class="card-title">日にち指定・空き検索</div>
                 <!-- 週間カレンダー -->
-                <div class="diag-filter-label">&#128197; 週間ビュー（タップで日付選択）</div>
-                <div class="week-cal" id="weekCalArea"></div>
-                <label style="margin-top:12px">基準日</label>
-                <div class="date-nav">
-                    <button class="btn-nav" onclick="shiftDate('searchDate',-1)">&#9668;</button>
-                    <input id="searchDate" type="date">
-                    <button class="btn-nav" onclick="shiftDate('searchDate',1)">&#9658;</button>
-                </div>
+                <div class="diag-filter-label">&#128197;
+                    週間ビュー（タップで日付選択）</div>
+                <div class="week-cal" id="weekCalArea"></div><label style="margin-top:12px">基準日</label>
+                <div class="date-nav"><button class="btn-nav" onclick="shiftDate('searchDate',-1)">&#9668;
+                    </button><input id="searchDate" type="date"><button class="btn-nav"
+                        onclick="shiftDate('searchDate',1)">&#9658;
+                    </button></div>
                 <!-- 診断士を指名して検索 -->
-                <div class="diag-filter-label">&#128104;&#8205;&#9877;&#65039; 診断士を指定（任意）</div>
-                <select id="diagFilter" style="margin-bottom:0">
-                    <option value="">&#9675; 指定なし（全員対象）</option>
-                </select>
-                <button class="btn btn-primary" onclick="doSearchSlots()" style="margin-top:14px">&#128269;
+                <div class="diag-filter-label">&#128104;
+                    &#8205;
+                    &#9877;
+                    &#65039;
+                    診断士を指定（任意）</div><select id="diagFilter" style="margin-bottom:0">
+                    <option value="">&#9675;
+                        指定なし（全員対象）</option>
+                </select><button class="btn btn-primary" onclick="doSearchSlots()" style="margin-top:14px">&#128269;
                     空きを検索</button>
-                <div id="slotsArea" style="margin-top:12px"></div>
-                <button class="btn btn-secondary hidden" id="btnFallback" onclick="doSearchFallback()"
+                <div id="slotsArea" style="margin-top:12px">
+                </div><button class="btn btn-secondary hidden" id="btnFallback" onclick="doSearchFallback()"
                     style="margin-top:8px">別の診断士でも探す</button>
             </div>
-
             <!-- 確認画面（ボトムシート内に移動) -->
         </div>
-
         <!-- 予約一覧 -->
         <div id="staffList" class="hidden">
             <!-- 管理者統計カード -->
@@ -1470,93 +1983,75 @@
             </div>
             <div class="card">
                 <div class="card-title">予約一覧（本日以降）</div>
-                <div class="filter-bar">
-                    <button class="filter-chip active" onclick="setFilter('all',this)">全件</button>
-                    <button class="filter-chip" onclick="setFilter('confirmed',this)">✅ 確定</button>
-                    <button class="filter-chip" onclick="setFilter('changed',this)">🔄 変更済</button>
-                    <button class="filter-chip" onclick="setFilter('canceled',this)">❌ キャンセル</button>
-                    <button class="sort-btn" onclick="toggleSort()" id="sortBtn">▲ 日付順</button>
-                </div>
-                <label>電話番号で絞り込み（任意）</label>
-                <input id="listPhone" type="tel" placeholder="09012345678">
-                <label>顧客名で絞り込み（任意）</label>
-                <input id="listName" type="text" placeholder="山田 太郎">
-                <button class="btn btn-secondary" onclick="doListBookings()" style="margin-top:10px">🔍 検索</button>
+                <div class="filter-bar"><button class="filter-chip active"
+                        onclick="setFilter('all',this)">全件</button><button class="filter-chip"
+                        onclick="setFilter('confirmed',this)">✅
+                        確定</button><button class="filter-chip" onclick="setFilter('changed',this)">🔄
+                        変更済</button><button class="filter-chip" onclick="setFilter('canceled',this)">❌
+                        キャンセル</button><button class="sort-btn" onclick="toggleSort()" id="sortBtn">▲ 日付順</button></div>
+                <label>電話番号で絞り込み（任意）</label><input id="listPhone" type="tel"
+                    placeholder="09012345678"><label>顧客名で絞り込み（任意）</label><input id="listName" type="text"
+                    placeholder="山田 太郎"><button class="btn btn-secondary" onclick="doListBookings()"
+                    style="margin-top:10px">🔍 検索</button>
                 <div id="bookingsList" style="margin-top:12px"></div>
             </div>
-
             <!-- 変更エリア -->
             <div class="card hidden" id="changeArea">
                 <div class="card-title">予約変更</div>
                 <div id="changeInfo" class="msg-info"></div>
                 <label>新しい基準日</label>
-                <div class="date-nav">
-                    <button class="btn-nav" onclick="shiftDate('changeDate',-1)">◄</button>
-                    <input id="changeDate" type="date">
-                    <button class="btn-nav" onclick="shiftDate('changeDate',1)">►</button>
-                </div>
+                <div class="date-nav"><button class="btn-nav" onclick="shiftDate('changeDate',-1)">◄</button><input
+                        id="changeDate" type="date"><button class="btn-nav"
+                        onclick="shiftDate('changeDate',1)">►</button></div>
                 <button class="btn btn-primary" onclick="doSearchChangeSlots()" style="margin-top:10px">🔍
                     空きを検索</button>
-                <div id="changeSlotsArea" style="margin-top:12px"></div>
-                <button class="btn btn-primary hidden" id="btnConfirmChange" onclick="doConfirmChange()"
-                    style="margin-top:8px">この日時に変更する</button>
-                <button class="btn btn-outline" onclick="closeChangeArea()" style="margin-top:8px">キャンセル</button>
+                <div id="changeSlotsArea" style="margin-top:12px"></div><button class="btn btn-primary hidden"
+                    id="btnConfirmChange" onclick="doConfirmChange()" style="margin-top:8px">この日時に変更する</button><button
+                    class="btn btn-outline" onclick="closeChangeArea()" style="margin-top:8px">キャンセル</button>
                 <div id="changeMsg"></div>
             </div>
         </div>
     </div>
-
-    <!-- ========== 診断士画面 ========== -->
+    <!--==========診断士画面==========-->
     <div id="screenDiag" class="container hidden">
         <div class="tab-bar">
             <div class="tab active" onclick="switchDiagTab('add')">稼働枠追加</div>
             <div class="tab" onclick="switchDiagTab('list')">稼働枠一覧</div>
         </div>
-
         <div id="diagAdd">
             <div class="card">
-                <div class="card-title">稼働枠を追加</div>
-                <label>日付</label>
-                <input id="availDate" type="date">
-                <label>開始時刻（30分刻み）</label>
-                <select id="availTime"></select>
-                <label>ブロック数（1ブロック = 130分）</label>
-                <select id="availBlocks">
+                <div class="card-title">稼働枠を追加</div><label>日付</label><input id="availDate"
+                    type="date"><label>開始時刻（30分刻み）</label><select
+                    id="availTime"></select><label>ブロック数（1ブロック=130分）</label><select id="availBlocks">
                     <option value="1">1ブロック（130分）</option>
                     <option value="2">2ブロック（260分）</option>
                     <option value="3">3ブロック（390分）</option>
                 </select>
-                <!-- 繰り返し登録オプション -->
-                <label style="margin-top:10px">🔄 繰り返し登録</label>
-                <select id="availRepeat">
+                <!-- 繰り返し登録オプション --><label style="margin-top:10px">🔄 繰り返し登録</label><select id="availRepeat">
                     <option value="0">繰り返しなし（一回のみ）</option>
                     <option value="1">1週間繰り返す（2回）</option>
                     <option value="2">2週間繰り返す（3回）</option>
                     <option value="3">3週間繰り返す（4回）</option>
                     <option value="4">4週間繰り返す（5回）</option>
-                </select>
-                <button class="btn btn-primary" onclick="doCreateAvail()" style="margin-top:14px">➕ 稼働枠を作成</button>
+                </select><button class="btn btn-primary" onclick="doCreateAvail()" style="margin-top:14px">➕
+                    稼働枠を作成</button>
                 <div id="availMsg"></div>
             </div>
         </div>
-
         <div id="diagList" class="hidden">
             <div class="card">
                 <div class="card-title">稼働枠一覧（2週間）</div>
                 <!-- 稼働枠カレンダービュー -->
-                <div class="avail-cal-nav">
-                    <button class="btn-nav" onclick="shiftAvailCalMonth(-1)">◄</button>
-                    <span id="availCalTitle"></span>
-                    <button class="btn-nav" onclick="shiftAvailCalMonth(1)">►</button>
+                <div class="avail-cal-nav"><button class="btn-nav" onclick="shiftAvailCalMonth(-1)">◄</button><span
+                        id="availCalTitle"></span><button class="btn-nav" onclick="shiftAvailCalMonth(1)">►</button>
                 </div>
-                <div id="availCalGrid" class="avail-cal"></div>
-                <button class="btn btn-secondary" onclick="doListAvail()">🔄 一覧更新</button>
+                <div id="availCalGrid" class="avail-cal"></div><button class="btn btn-secondary"
+                    onclick="doListAvail()">🔄 一覧更新</button>
                 <div id="availList" style="margin-top:12px"></div>
             </div>
         </div>
     </div>
-
-    <!-- ========== オーバーレイ + ボトムシート ========== -->
+    <!--==========オーバーレイ+ボトムシート==========-->
     <div id="sheetOverlay" class="sheet-overlay" onclick="closeConfirmSheet()"></div>
     <div id="confirmSheet" class="bottom-sheet">
         <div class="sheet-handle"></div>
@@ -1564,25 +2059,28 @@
         <div id="sheetConfirmDetail"></div>
         <!-- LINE通知プレビュー -->
         <div class="line-preview-label">📱 診断士へのLINE通知プレビュー</div>
-        <div id="linePreviewBox" class="line-preview">…</div>
-        <button class="btn btn-primary" onclick="doCreateBooking()" style="margin-top:14px">✅ 予約を確定する</button>
-        <button class="btn btn-outline" onclick="closeConfirmSheet()" style="margin-top:8px">← 戻る</button>
+        <div id="linePreviewBox" class="line-preview">…</div><button class="btn btn-primary" onclick="doCreateBooking()"
+            style="margin-top:14px">✅ 予約を確定する</button><button class="btn btn-outline" onclick="closeConfirmSheet()"
+            style="margin-top:8px">←
+            戻る</button>
         <div id="sheetConfirmMsg"></div>
     </div>
-
     <!-- 顧客履歴ボトムシート -->
-    <div id="historyOverlay" class="sheet-overlay" onclick="closeHistorySheet()"></div>
+    <div id="historyOverlay" class="sheet-overlay" onclick="closeHistorySheet()">
+    </div>
     <div id="historySheet" class="bottom-sheet">
         <div class="sheet-handle"></div>
         <div class="sheet-title">📞 顧客履歴</div>
         <div id="historyContent">
-            <div class="loading-text" style="text-align:center;padding:20px">読込中...</div>
+            <div class="loading-text" style="text-align:center;padding:20px">読込中...
+            </div>
         </div>
     </div>
-
     <script>
+
         /* ========== グローバル状態 ========== */
         const STATE = {
+
             line_user_id: '',
             role: '',
             salon_id: '',
@@ -1590,13 +2088,17 @@
             step_type: '',
             parent_booking_id: '',
             preferred_diag_id: '',
-            customer: {},
+            customer: {}
+
+            ,
             selectedSlot: null,
             selectedDiagId: '',
             selectedDiagName: '',
             changeBookingId: '',
             changeSlot: null,
-        };
+        }
+
+            ;
 
         /* ========== 設定: ここだけ変更する ========== */
         // LINE Developers Console の LIFF ID
@@ -1606,60 +2108,66 @@
 
         // LIFF SDK を複数CDNからフォールバック付きで動的読み込み
         function loadSdk(urls, onSuccess, onFail) {
-            if (urls.length === 0) { onFail(); return; }
+            if (urls.length === 0) {
+                onFail();
+                return;
+            }
+
             var s = document.createElement('script');
             s.src = urls[0];
             s.onload = onSuccess;
-            s.onerror = function () { loadSdk(urls.slice(1), onSuccess, onFail); };
+
+            s.onerror = function () {
+                loadSdk(urls.slice(1), onSuccess, onFail);
+            }
+
+                ;
             document.head.appendChild(s);
         }
 
         document.addEventListener('DOMContentLoaded', function () {
             showStep('LIFF SDK 読み込み中...');
-            loadSdk(
-                [
-                    'https://cdn.jsdelivr.net/npm/@line/liff@2.22.3/dist/liff.min.js',
-                    'https://unpkg.com/@line/liff@2.22.3/dist/liff.min.js',
-                    'https://static.line-scdn.net/liff/edge/2/sdk.js'
-                ],
+            loadSdk(['https://cdn.jsdelivr.net/npm/@line/liff@2.22.3/dist/liff.min.js',
+                'https://unpkg.com/@line/liff@2.22.3/dist/liff.min.js',
+                'https://static.line-scdn.net/liff/edge/2/sdk.js'
+
+            ],
                 function () {
                     if (typeof liff === 'undefined') {
                         showStep('⚠️ LIFF SDKが読み込まれていません。ページを再読み込みしてください。', true);
                         return;
                     }
+
                     initLiff();
-                },
+                }
+
+                ,
                 function () {
                     showStep('⚠️ LIFF SDKの読み込みに失敗しました。ネットワークを確認してください。', true);
-                }
-            );
+                });
         });
 
         // ローディング画面にステップメッセージを表示
         function showStep(msg, isError) {
             const cls = isError ? 'msg-error' : 'loading-text';
-            el('screenLoading').innerHTML =
-                '<div class="loading-screen">'
-                + (isError ? '' : '<div class="spinner"></div>')
-                + '<div class="' + cls + '" style="text-align:center;padding:0 16px">' + msg + '</div>'
+            el('screenLoading').innerHTML = '<div class="loading-screen">'
+                + (isError ? '' : '<div class="spinner"></div>') + '<div class="' + cls + '" style="text-align:center;padding:0 16px">' + msg + '</div>'
                 + '</div>';
         }
 
         async function initLiff() {
+
             // タイムアウト付き Promise
             function withTimeout(promise, ms, label) {
-                return Promise.race([
-                    promise,
-                    new Promise((_, reject) =>
-                        setTimeout(() => reject(new Error(label + ' が ' + (ms / 1000) + '秒以内に完了しませんでした')), ms)
-                    )
-                ]);
+                return Promise.race([promise,
+                    new Promise((_, reject) => setTimeout(() => reject(new Error(label + ' が ' + (ms / 1000) + '秒以内に完了しませんでした')), ms))]);
             }
 
             try {
                 // STEP 1: LIFF_ID 確認
                 showStep('ステップ 1/4: LIFF ID 確認中...');
                 console.log('LIFF_ID:', LIFF_ID);
+
                 if (!LIFF_ID || LIFF_ID === '') {
                     showStep('⚠️ LIFF IDが設定されていません。GASスクリプトプロパティ「LIFF_ID」を確認してください。', true);
                     return;
@@ -1668,24 +2176,28 @@
                 // STEP 2: liff.init()
                 const liffIdTrimmed = LIFF_ID.trim();
                 showStep('ステップ 2/4: LIFF 初期化中... (ID: ' + liffIdTrimmed + ' [len:' + liffIdTrimmed.length + '])');
+
                 try {
-                    await liff.init({ liffId: liffIdTrimmed });
-                } catch (initErr) {
+                    await liff.init({
+                        liffId: liffIdTrimmed
+                    });
+                }
+
+                catch (initErr) {
                     // init失敗時: エラーコードとURL詳細を表示
                     const baseUrl = location.href.split('?')[0].split('#')[0];
                     const errCode = initErr.code || initErr.errorCode || 'N/A';
-                    showStep(
-                        '⚠️ LIFF初期化失敗<br>'
+                    showStep('⚠️ LIFF初期化失敗<br>'
                         + 'メッセージ: ' + (initErr.message || String(initErr)) + '<br>'
                         + 'コード: ' + errCode + '<br>'
                         + 'ベースURL: <small style="word-break:break-all">' + baseUrl + '</small>',
-                        true
-                    );
+                        true);
                     return;
                 }
 
                 // STEP 3: ログイン確認
                 showStep('ステップ 3/4: ログイン状態確認中...');
+
                 if (!liff.isLoggedIn()) {
                     showStep('ユーザーログイン処理中...');
                     liff.login();
@@ -1694,8 +2206,7 @@
 
                 // STEP 4: プロフィール取得
                 showStep('ステップ 4/4: プロフィール取得中...');
-                const profile = await withTimeout(
-                    liff.getProfile(),
+                const profile = await withTimeout(liff.getProfile(),
                     10000,
                     'liff.getProfile()'
                 );
@@ -1704,7 +2215,9 @@
 
                 showStep('サーバーに接続中...');
                 bootstrap();
-            } catch (e) {
+            }
+
+            catch (e) {
                 console.error('LIFF init error:', e);
                 showStep('⚠️ 初期化エラー: ' + (e.message || String(e)), true);
             }
@@ -1717,38 +2230,56 @@
             // apiBootstrap のタイムアウト
             const timer = setTimeout(function () {
                 showStep('⚠️ サーバーからの応答がタイムアウトしました (15秒)。ページを再読み込みしてください。', true);
-            }, 15000);
+            }
 
-            callApi('apiBootstrap', { line_user_id: STATE.line_user_id }, (res) => {
-                clearTimeout(timer);
-                hide('screenLoading');
-                if (!res.ok) { showFatalError(res.error); return; }
-                STATE.role = res.role;
-                if (res.role === 'staff') {
-                    STATE.salon_id = res.salon_id;
-                    setBadge('スタッフ');
-                    // 店舗名バッジ表示
-                    if (res.salon_name) {
-                        const sb = el('salonBadge');
-                        sb.textContent = '🏪 ' + res.salon_name;
-                        sb.classList.remove('hidden');
+                , 15000);
+
+            callApi('apiBootstrap', {
+                line_user_id: STATE.line_user_id
+            }
+
+                , (res) => {
+                    clearTimeout(timer);
+                    hide('screenLoading');
+
+                    if (!res.ok) {
+                        showFatalError(res.error); return;
                     }
-                    show('screenStaff');
-                    initStaffUI();
-                    // 今日の予約件数（GASが返す場合のみ表示）
-                    if (res.today_count !== undefined && res.today_count > 0) {
-                        el('todayCount').textContent = res.today_count + '件';
-                        show('todaySummary');
+
+                    STATE.role = res.role;
+
+                    if (res.role === 'staff') {
+                        STATE.salon_id = res.salon_id;
+                        setBadge('スタッフ');
+
+                        // 店舗名バッジ表示
+                        if (res.salon_name) {
+                            const sb = el('salonBadge');
+                            sb.textContent = '🏪 ' + res.salon_name;
+                            sb.classList.remove('hidden');
+                        }
+
+                        show('screenStaff');
+                        initStaffUI();
+
+                        // 今日の予約件数（GASが返す場合のみ表示）
+                        if (res.today_count !== undefined && res.today_count > 0) {
+                            el('todayCount').textContent = res.today_count + '件';
+                            show('todaySummary');
+                        }
                     }
-                } else if (res.role === 'diagnostician') {
-                    STATE.diag_id = res.diag_id;
-                    setBadge('診断士');
-                    show('screenDiag');
-                    initDiagUI();
-                } else {
-                    show('screenRegister');
-                }
-            });
+
+                    else if (res.role === 'diagnostician') {
+                        STATE.diag_id = res.diag_id;
+                        setBadge('診断士');
+                        show('screenDiag');
+                        initDiagUI();
+                    }
+
+                    else {
+                        show('screenRegister');
+                    }
+                });
         }
 
         function setBadge(label) {
@@ -1758,7 +2289,10 @@
         }
 
         function showFatalError(msg) {
-            el('screenLoading').innerHTML = `<div class="container"><div class="msg-error" style="margin-top:40px">⚠️ ${esc(msg)}</div></div>`;
+            el('screenLoading').innerHTML = `<div class="container"><div class="msg-error" style="margin-top:40px">⚠️ ${esc(msg)
+                }
+
+            </div></div>`;
             show('screenLoading');
         }
 
@@ -1766,44 +2300,78 @@
         function switchRegTab(tab) {
             const tabs = document.querySelectorAll('#screenRegister .tab');
             tabs.forEach(t => t.classList.remove('active'));
+
             if (tab === 'staff') {
                 tabs[0].classList.add('active');
-                show('regStaff'); hide('regDiag');
-            } else {
-                tabs[1].classList.add('active');
-                hide('regStaff'); show('regDiag');
+                show('regStaff');
+                hide('regDiag');
             }
+
+            else {
+                tabs[1].classList.add('active');
+                hide('regStaff');
+                show('regDiag');
+            }
+
             el('regMsg').innerHTML = '';
         }
 
         function doLinkSalon() {
             const code = el('regSalonCode').value.trim();
-            if (!code) { el('regMsg').innerHTML = '<div class="msg-error">店舗コードを入力してください</div>'; return; }
+
+            if (!code) {
+                el('regMsg').innerHTML = '<div class="msg-error">店舗コードを入力してください</div>';
+                return;
+            }
+
             el('regMsg').innerHTML = '<div class="loading-text" style="text-align:center;padding:10px">登録中...</div>';
-            callApi('apiLinkSalon', { line_user_id: STATE.line_user_id, salon_code: code }, (res) => {
-                if (!res.ok) { el('regMsg').innerHTML = `<div class="msg-error">${esc(res.error)}</div>`; return; }
-                STATE.role = 'staff'; STATE.salon_id = res.salon_id;
-                setBadge('スタッフ');
-                hide('screenRegister'); show('screenStaff');
-                initStaffUI();
-                el('regMsg').innerHTML = '';
-                showToast(`${res.salon_name} のスタッフとして登録しました ✅`);
-            });
+
+            callApi('apiLinkSalon', {
+                line_user_id: STATE.line_user_id, salon_code: code
+            }
+
+                , (res) => {
+                    if (!res.ok) {
+                        el('regMsg').innerHTML = '<div class="msg-error">' + esc(res.error) + '</div>'; return;
+                    }
+
+                    STATE.role = 'staff'; STATE.salon_id = res.salon_id;
+                    setBadge('スタッフ');
+                    hide('screenRegister'); show('screenStaff');
+                    initStaffUI();
+                    el('regMsg').innerHTML = '';
+
+                    showToast(res.salon_name + ' のスタッフとして登録しました ✅');
+                });
         }
 
         function doLinkDiag() {
             const id = el('regDiagId').value.trim();
-            if (!id) { el('regMsg').innerHTML = '<div class="msg-error">診断士IDを入力してください</div>'; return; }
+
+            if (!id) {
+                el('regMsg').innerHTML = '<div class="msg-error">診断士IDを入力してください</div>';
+                return;
+            }
+
             el('regMsg').innerHTML = '<div class="loading-text" style="text-align:center;padding:10px">登録中...</div>';
-            callApi('apiLinkDiagnostician', { line_user_id: STATE.line_user_id, diag_id: id }, (res) => {
-                if (!res.ok) { el('regMsg').innerHTML = `<div class="msg-error">${esc(res.error)}</div>`; return; }
-                STATE.role = 'diagnostician'; STATE.diag_id = res.diag_id;
-                setBadge('診断士');
-                hide('screenRegister'); show('screenDiag');
-                initDiagUI();
-                el('regMsg').innerHTML = '';
-                showToast(`${res.diag_name} として登録しました ✅`);
-            });
+
+            callApi('apiLinkDiagnostician', {
+                line_user_id: STATE.line_user_id, diag_id: id
+            }
+
+                , (res) => {
+                    if (!res.ok) {
+                        el('regMsg').innerHTML = '<div class="msg-error">' + esc(res.error) + '</div>'; return;
+                    }
+
+                    STATE.role = 'diagnostician'; STATE.diag_id = res.diag_id;
+                    setBadge('診断士');
+                    hide('screenRegister'); show('screenDiag');
+                    initDiagUI();
+                    el('regMsg').innerHTML = '';
+
+                    showToast(res.diag_name + ' として登録しました ✅');
+                });
         }
 
         /* ========== スタッフUI ========== */
@@ -1812,30 +2380,48 @@
             tomorrow.setDate(tomorrow.getDate() + 1);
             el('searchDate').value = fmtDate(tomorrow);
             el('changeDate').value = fmtDate(tomorrow);
+
             // 電話番号入力フィールドの自動整形（数字のみ許可）
-            ['custPhone', 's2Phone', 'listPhone'].forEach(function (id) {
-                var inp = el(id);
-                if (inp) inp.addEventListener('input', function () {
-                    var v = this.value.replace(/\D/g, '');
-                    if (this.value !== v) this.value = v;
+            ['custPhone',
+                's2Phone',
+                'listPhone'].forEach(function (id) {
+                    var inp = el(id);
+
+                    if (inp) inp.addEventListener('input', function () {
+                        var v = this.value.replace(/\D/g, '');
+                        if (this.value !== v) this.value = v;
+                    });
                 });
-            });
+
             // custPhone: 入力後に過去顧客名を検索してオートフィル提案
             el('custPhone').addEventListener('change', function () {
                 const phone = this.value.trim();
                 const suggestEl = el('custNameSuggest');
-                if (!phone || phone.length < 7) { hide('custNameSuggest'); return; }
-                callApi('apiFindCustomerByPhone', { line_user_id: STATE.line_user_id, customer_phone: phone }, (res) => {
-                    if (!res.ok || !res.customer_name) { hide('custNameSuggest'); return; }
-                    // 顧客名フィールドが空のときのみ提案
-                    if (el('custName').value.trim()) { hide('custNameSuggest'); return; }
-                    suggestEl.innerHTML = `
-<div class="msg-info" style="display:flex;align-items:center;gap:8px;padding:8px 10px;">
-  <span style="flex:1">💡 過去の顧客: <strong>${esc(res.customer_name)}</strong></span>
-  <button class="btn-copy" onclick="el('custName').value='${esc(res.customer_name)}';hide('custNameSuggest')">使う</button>
-</div>`;
-                    show('custNameSuggest');
-                });
+
+                if (!phone || phone.length < 7) {
+                    hide('custNameSuggest'); return;
+                }
+
+                callApi('apiFindCustomerByPhone', {
+                    line_user_id: STATE.line_user_id, customer_phone: phone
+                }
+
+                    , (res) => {
+                        if (!res.ok || !res.customer_name) {
+                            hide('custNameSuggest'); return;
+                        }
+
+                        // 顧客名フィールドが空のときのみ提案
+                        if (el('custName').value.trim()) {
+                            hide('custNameSuggest'); return;
+                        }
+
+                        suggestEl.innerHTML = ` <div class="msg-info" style="display:flex;align-items:center;gap:8px;padding:8px 10px;" > <span style="flex:1" >💡 過去の顧客: <strong>${esc(res.customer_name)
+                            }
+
+                        </strong></span> <button class="btn-copy" onclick="el('custName').value='${esc(res.customer_name)}';hide('custNameSuggest')" >使う</button> </div>`;
+                        show('custNameSuggest');
+                    });
             });
             // 診断士リスト読込 + 週間カレンダー描画 + プルトゥリフレッシュ
             loadDiagList();
@@ -1847,12 +2433,17 @@
         function switchStaffTab(tab) {
             const tabs = document.querySelectorAll('#staffTabs .tab');
             tabs.forEach(t => t.classList.remove('active'));
+
             if (tab === 'new') {
                 tabs[0].classList.add('active');
-                show('staffNew'); hide('staffList');
-            } else {
+                show('staffNew');
+                hide('staffList');
+            }
+
+            else {
                 tabs[1].classList.add('active');
-                hide('staffNew'); show('staffList');
+                hide('staffNew');
+                show('staffList');
                 doListBookings();
                 doAdminStats(); // 統計更新
             }
@@ -1860,12 +2451,23 @@
 
         /* --- 新規予約フロー --- */
         function resetNewBooking() {
-            STATE.step_type = ''; STATE.parent_booking_id = ''; STATE.preferred_diag_id = '';
-            STATE.customer = {}; STATE.selectedSlot = null; STATE.selectedDiagId = ''; STATE.selectedDiagName = '';
+            STATE.step_type = '';
+            STATE.parent_booking_id = '';
+            STATE.preferred_diag_id = '';
+
+            STATE.customer = {}
+
+                ;
+            STATE.selectedSlot = null;
+            STATE.selectedDiagId = '';
+            STATE.selectedDiagName = '';
             closeConfirmSheet();
             show('stepSelect');
-            hide('step2ParentSearch'); hide('custInfo'); hide('dateSearch');
-            el('slotsArea').innerHTML = ''; hide('btnFallback');
+            hide('step2ParentSearch');
+            hide('custInfo');
+            hide('dateSearch');
+            el('slotsArea').innerHTML = '';
+            hide('btnFallback');
         }
 
         function startStep(step) {
@@ -1875,36 +2477,66 @@
             hide('stepSelect');
             show('custInfo');
             el('custStepLabel').textContent = step === 'STEP1' ? '📋 STEP1 初回診断' : '🔄 STEP2 フォロー診断';
-            el('custName').value = ''; el('custPhone').value = '';
-            el('custGender').value = ''; el('custAge').value = '';
+            el('custName').value = '';
+            el('custPhone').value = '';
+            el('custGender').value = '';
+            el('custAge').value = '';
         }
 
         function startStep2Search() {
             STATE.step_type = 'STEP2';
             hide('stepSelect');
             show('step2ParentSearch');
-            el('s2Phone').value = ''; el('s2ParentList').innerHTML = ''; el('s2Msg').innerHTML = '';
+            el('s2Phone').value = '';
+            el('s2ParentList').innerHTML = '';
+            el('s2Msg').innerHTML = '';
         }
 
         function doFindParent() {
             const phone = el('s2Phone').value.trim();
-            if (!phone) { el('s2Msg').innerHTML = '<div class="msg-error">電話番号を入力してください</div>'; return; }
+
+            if (!phone) {
+                el('s2Msg').innerHTML = '<div class="msg-error">電話番号を入力してください</div>';
+                return;
+            }
+
             el('s2Msg').innerHTML = '<div class="loading-text" style="text-align:center;padding:10px">検索中...</div>';
-            callApi('apiFindParentStep1', { line_user_id: STATE.line_user_id, customer_phone: phone }, (res) => {
-                el('s2Msg').innerHTML = '';
-                if (!res.ok) { el('s2Msg').innerHTML = `<div class="msg-error">${esc(res.error)}</div>`; return; }
-                if (res.parents.length === 0) {
-                    el('s2ParentList').innerHTML = '<div class="msg-warn">該当するSTEP1が見つかりません</div>';
-                    return;
-                }
-                let h = '<p style="font-size:.85rem;color:#555;margin:8px 0 4px">親STEP1を選択してください:</p>';
-                for (const p of res.parents) {
-                    const dt = fmtDt(p.start_at);
-                    h += `<button class="slot-btn" onclick="selectParent('${esc(p.booking_id)}','${esc(p.diag_id)}','${esc(p.customer_name)}','${esc(p.customer_phone)}')">`
-                        + `👤 ${esc(p.customer_name)} / ${dt}<br><small style="font-weight:normal">診断士: ${esc(p.diag_name)}</small></button>`;
-                }
-                el('s2ParentList').innerHTML = h;
-            });
+
+            callApi('apiFindParentStep1', {
+                line_user_id: STATE.line_user_id, customer_phone: phone
+            }
+
+                , (res) => {
+                    el('s2Msg').innerHTML = '';
+
+                    if (!res.ok) {
+                        el('s2Msg').innerHTML = '<div class="msg-error">' + esc(res.error) + '</div>'; return;
+                    }
+
+                    if (res.parents.length === 0) {
+                        el('s2ParentList').innerHTML = '<div class="msg-warn">該当するSTEP1が見つかりません</div>';
+                        return;
+                    }
+
+                    let h = '<p style="font-size:.85rem;color:#555;margin:8px 0 4px">親STEP1を選択してください:</p>';
+
+                    for (const p of res.parents) {
+                        const dt = fmtDt(p.start_at);
+
+                        h += `<button class="slot-btn" onclick="selectParent('${esc(p.booking_id)}','${esc(p.diag_id)}','${esc(p.customer_name)}','${esc(p.customer_phone)}')" >` + `👤 ${esc(p.customer_name)
+                            }
+
+                    / ${dt
+                            }
+
+                    <br><small style="font-weight:normal" >診断士: ${esc(p.diag_name)
+                            }
+
+                    </small></button>`;
+                    }
+
+                    el('s2ParentList').innerHTML = h;
+                });
         }
 
         function selectParent(bookingId, diagId, custName, custPhone) {
@@ -1920,12 +2552,20 @@
         function goToDateInput() {
             const name = el('custName').value.trim();
             const phone = el('custPhone').value.trim();
-            if (!name || !phone) { showToast('顧客名と電話番号は必須です', true); return; }
+
+            if (!name || !phone) {
+                showToast('顧客名と電話番号は必須です', true);
+                return;
+            }
+
             STATE.customer = {
-                name, phone,
+                name,
+                phone,
                 gender: el('custGender').value,
                 age: el('custAge').value
-            };
+            }
+
+                ;
             hide('custInfo');
             show('dateSearch');
             el('slotsArea').innerHTML = '';
@@ -1934,10 +2574,16 @@
 
         function doSearchSlots() {
             const ymd = el('searchDate').value;
-            if (!ymd) { showToast('基準日を選択してください', true); return; }
+
+            if (!ymd) {
+                showToast('基準日を選択してください', true);
+                return;
+            }
+
             showSkeleton('slotsArea', 3);
             hide('btnFallback');
             const diagFilter = el('diagFilter') ? el('diagFilter').value : '';
+
             const payload = {
                 line_user_id: STATE.line_user_id,
                 step_type: STATE.step_type,
@@ -1945,15 +2591,23 @@
                 parent_booking_id: STATE.parent_booking_id || '',
                 allow_fallback: false,
                 diag_id_filter: diagFilter,
-            };
+            }
+
+                ;
+
             callApi('apiSearchSlots', payload, (res) => {
-                if (!res.ok) { el('slotsArea').innerHTML = `<div class="msg-error">${esc(res.error)}</div>`; return; }
+                if (!res.ok) {
+                    el('slotsArea').innerHTML = '<div class="msg-error">' + esc(res.error) + '</div>'; return;
+                }
+
                 if (res.mode === 'no_preferred_slot') {
                     el('slotsArea').innerHTML = '<div class="msg-warn">同一診断士の空きがありません</div>';
                     show('btnFallback');
                     return;
                 }
+
                 renderSlots(res.results, 'slotsArea');
+
                 if (res.results.length === 0) {
                     el('slotsArea').innerHTML = '<div class="msg-warn">空きがありません。別の日付をお試しください。</div>';
                 }
@@ -1964,16 +2618,24 @@
             const ymd = el('searchDate').value;
             el('slotsArea').innerHTML = '<div class="loading-text" style="text-align:center;padding:16px"><div class="spinner" style="margin:0 auto 8px"></div>検索中...</div>';
             hide('btnFallback');
+
             const payload = {
                 line_user_id: STATE.line_user_id,
                 step_type: STATE.step_type,
                 date_ymd: ymd,
                 parent_booking_id: STATE.parent_booking_id || '',
                 allow_fallback: true,
-            };
+            }
+
+                ;
+
             callApi('apiSearchSlots', payload, (res) => {
-                if (!res.ok) { el('slotsArea').innerHTML = `<div class="msg-error">${esc(res.error)}</div>`; return; }
+                if (!res.ok) {
+                    el('slotsArea').innerHTML = '<div class="msg-error">' + esc(res.error) + '</div>'; return;
+                }
+
                 renderSlots(res.results, 'slotsArea');
+
                 if (res.results.length === 0) {
                     el('slotsArea').innerHTML = '<div class="msg-warn">空きがありません。</div>';
                 }
@@ -1982,14 +2644,25 @@
 
         function renderSlots(results, targetId) {
             let h = '';
+
             for (const group of results) {
-                h += `<div class="diag-group"><div class="diag-group-title">👨‍⚕️ ${esc(group.diag_name)}</div>`;
+                h += `<div class="diag-group"><div class="diag-group-title">👨‍⚕️ ${esc(group.diag_name)
+                    }
+
+                </div>`;
+
                 for (const s of group.slots) {
                     const lbl = fmtDt(s.start_at) + ' 〜 ' + fmtTime(s.end_at);
-                    h += `<button class="slot-btn" data-iso="${esc(s.start_at)}" data-did="${esc(group.diag_id)}" data-dn="${esc(group.diag_name)}" onclick="pickSlot(this)">🕐 ${lbl}</button>`;
+
+                    h += `<button class="slot-btn" data-iso="${esc(s.start_at)}" data-did="${esc(group.diag_id)}" data-dn="${esc(group.diag_name)}" onclick="pickSlot(this)">🕐 ${lbl
+                        }
+
+                    </button>`;
                 }
+
                 h += '</div>';
             }
+
             el(targetId).innerHTML = h;
         }
 
@@ -2000,14 +2673,23 @@
             STATE.selectedDiagId = btn.dataset.did;
             STATE.selectedDiagName = btn.dataset.dn;
             const dt = fmtDt(STATE.selectedSlot);
-            el('sheetConfirmDetail').innerHTML = `
-<table class="confirm-table">
-  <tr><td>種別</td><td>${esc(STATE.step_type)}</td></tr>
-  <tr><td>顧客名</td><td>${esc(STATE.customer.name)}</td></tr>
-  <tr><td>電話</td><td>${esc(STATE.customer.phone)}</td></tr>
-  <tr><td>診断士</td><td>${esc(STATE.selectedDiagName)}</td></tr>
-  <tr><td>日時</td><td>${dt}</td></tr>
-</table>`;
+
+            el('sheetConfirmDetail').innerHTML = ` <table class="confirm-table"><tr><td>種別</td><td>${esc(STATE.step_type)
+                }
+
+            </td></tr><tr><td>顧客名</td><td>${esc(STATE.customer.name)
+                }
+
+            </td></tr><tr><td>電話</td><td>${esc(STATE.customer.phone)
+                }
+
+            </td></tr><tr><td>診断士</td><td>${esc(STATE.selectedDiagName)
+                }
+
+            </td></tr><tr><td>日時</td><td>${dt
+                }
+
+            </td></tr></table>`;
             el('sheetConfirmMsg').innerHTML = '';
             openConfirmSheet();
             updateLinePreview(); // LINE通知プレビュー更新
@@ -2019,8 +2701,13 @@
         }
 
         function doCreateBooking() {
-            if (!STATE.selectedSlot) { showToast('枚を選択してください', true); return; }
+            if (!STATE.selectedSlot) {
+                showToast('枚を選択してください', true);
+                return;
+            }
+
             el('sheetConfirmMsg').innerHTML = '<div class="loading-text" style="text-align:center;padding:10px">予約作成中...</div>';
+
             const payload = {
                 line_user_id: STATE.line_user_id,
                 step_type: STATE.step_type,
@@ -2032,24 +2719,34 @@
                 memo: el('custMemo') ? el('custMemo').value.trim() : '',
                 diag_id: STATE.selectedDiagId,
                 start_at_iso: STATE.selectedSlot,
-            };
+            }
+
+                ;
+
             callApi('apiCreateBooking', payload, (res) => {
                 if (!res.ok) {
-                    el('sheetConfirmMsg').innerHTML = `<div class="msg-error">${esc(res.error)}</div>
-<button class="btn-retry" onclick="doCreateBooking()">🔄 再試行</button>`;
+                    el('sheetConfirmMsg').innerHTML = `<div class="msg-error" >${esc(res.error)
+                        }
+
+                        </div> <button class="btn-retry" onclick="doCreateBooking()" >🔄 再試行</button>`;
                     return;
                 }
+
                 // 成功: ハプティクス + confetti + コピーボタン表示
                 if (navigator.vibrate) navigator.vibrate([50, 30, 50]);
                 showConfetti();
                 const bid = res.booking.booking_id;
-                el('sheetConfirmMsg').innerHTML = `
-<div class="msg-success">
-  ✅ 予約確定: <strong>${esc(bid)}</strong><br>
-  <button class="btn-copy" onclick="copyId('${esc(bid)}')">&#128203; 予約IDをコピー</button>
-  <small style="display:block;color:#2e7d32;margin-top:4px">診断士へ通知済 📩</small>
-</div>`;
-                setTimeout(() => { closeConfirmSheet(); resetNewBooking(); }, 3500);
+
+                el('sheetConfirmMsg').innerHTML = ` <div class="msg-success" > ✅ 予約確定: <strong>${esc(bid)
+                    }
+
+                    </strong><br> <button class="btn-copy" onclick="copyId('${esc(bid)}')" >&#128203; 予約IDをコピー</button> <small style="display:block;color:#2e7d32;margin-top:4px" >診断士へ通知済 📩</small> </div>`;
+
+                setTimeout(() => {
+                    closeConfirmSheet(); resetNewBooking();
+                }
+
+                    , 3500);
             });
         }
 
@@ -2058,18 +2755,32 @@
             const phone = el('listPhone').value.trim();
             const nameQ = el('listName') ? el('listName').value.trim() : '';
             showSkeleton('bookingsList', 3);
-            callApi('apiListBookings', { line_user_id: STATE.line_user_id, q_phone: phone, q_name: nameQ }, (res) => {
-                if (!res.ok) {
-                    el('bookingsList').innerHTML = `<div class="msg-error">${esc(res.error)}</div>
-<button class="btn-retry" onclick="doListBookings()">🔄 再試行</button>`;
-                    return;
-                }
-                // キャッシュ保存（オフライン用）
-                _cachedBookings = res.bookings || [];
-                try { localStorage.setItem('mytone_bookings_cache', JSON.stringify(_cachedBookings)); } catch (e) { }
-                // フィルタ＆ソートして描画
-                renderFilteredBookings();
-            });
+
+            callApi('apiListBookings', {
+                line_user_id: STATE.line_user_id, q_phone: phone, q_name: nameQ
+            }
+
+                , (res) => {
+                    if (!res.ok) {
+                        el('bookingsList').innerHTML = `<div class="msg-error" >${esc(res.error)
+                            }
+
+                    </div> <button class="btn-retry" onclick="doListBookings()" >🔄 再試行</button>`;
+                        return;
+                    }
+
+                    // キャッシュ保存（オフライン用）
+                    _cachedBookings = res.bookings || [];
+
+                    try {
+                        localStorage.setItem('mytone_bookings_cache', JSON.stringify(_cachedBookings));
+                    }
+
+                    catch (e) { }
+
+                    // フィルタ＆ソートして描画
+                    renderFilteredBookings();
+                });
         }
 
         /* --- 変更フロー --- */
@@ -2077,11 +2788,18 @@
             STATE.changeBookingId = bookingId;
             STATE.changeSlot = null;
             show('changeArea');
-            el('changeInfo').textContent = `変更対象: ${bookingId}`;
+
+            el('changeInfo').textContent = `変更対象: ${bookingId
+                }
+
+            `;
             el('changeSlotsArea').innerHTML = '';
             hide('btnConfirmChange');
             el('changeMsg').innerHTML = '';
-            el('changeArea').scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+            el('changeArea').scrollIntoView({
+                behavior: 'smooth', block: 'start'
+            });
         }
 
         function closeChangeArea() {
@@ -2091,33 +2809,56 @@
 
         function doSearchChangeSlots() {
             const ymd = el('changeDate').value;
-            if (!ymd) { showToast('日付を選択してください', true); return; }
+
+            if (!ymd) {
+                showToast('日付を選択してください', true);
+                return;
+            }
+
             el('changeSlotsArea').innerHTML = '<div class="loading-text" style="text-align:center;padding:16px"><div class="spinner" style="margin:0 auto 8px"></div>検索中...</div>';
             hide('btnConfirmChange');
+
             callApi('apiSearchSlotsForChange', {
                 line_user_id: STATE.line_user_id,
                 booking_id: STATE.changeBookingId,
                 date_ymd: ymd,
-            }, (res) => {
-                if (!res.ok) { el('changeSlotsArea').innerHTML = `<div class="msg-error">${esc(res.error)}</div>`; return; }
-                if (res.results.length === 0) {
-                    el('changeSlotsArea').innerHTML = '<div class="msg-warn">空きがありません</div>';
-                    return;
-                }
-                renderChangeSlots(res.results);
-            });
+            }
+
+                , (res) => {
+                    if (!res.ok) {
+                        el('changeSlotsArea').innerHTML = '<div class="msg-error">' + esc(res.error) + '</div>'; return;
+                    }
+
+                    if (res.results.length === 0) {
+                        el('changeSlotsArea').innerHTML = '<div class="msg-warn">空きがありません</div>';
+                        return;
+                    }
+
+                    renderChangeSlots(res.results);
+                });
         }
 
         function renderChangeSlots(results) {
             let h = '';
+
             for (const group of results) {
-                h += `<div class="diag-group"><div class="diag-group-title">👨‍⚕️ ${esc(group.diag_name)}</div>`;
+                h += `<div class="diag-group"><div class="diag-group-title">👨‍⚕️ ${esc(group.diag_name)
+                    }
+
+                </div>`;
+
                 for (const s of group.slots) {
                     const lbl = fmtDt(s.start_at) + ' 〜 ' + fmtTime(s.end_at);
-                    h += `<button class="slot-btn" data-iso="${esc(s.start_at)}" onclick="pickChangeSlot(this)">🕐 ${lbl}</button>`;
+
+                    h += `<button class="slot-btn" data-iso="${esc(s.start_at)}" onclick="pickChangeSlot(this)">🕐 ${lbl
+                        }
+
+                    </button>`;
                 }
+
                 h += '</div>';
             }
+
             el('changeSlotsArea').innerHTML = h;
         }
 
@@ -2131,35 +2872,63 @@
         function doConfirmChange() {
             if (!STATE.changeSlot) return;
             el('changeMsg').innerHTML = '<div class="loading-text" style="text-align:center;padding:10px">変更中...</div>';
+
             callApi('apiChangeBooking', {
                 line_user_id: STATE.line_user_id,
                 booking_id: STATE.changeBookingId,
                 new_start_at_iso: STATE.changeSlot,
-            }, (res) => {
-                if (!res.ok) { el('changeMsg').innerHTML = `<div class="msg-error">${esc(res.error)}</div>`; return; }
-                el('changeMsg').innerHTML = `<div class="msg-success">✅ 変更完了: ${esc(res.booking.booking_id)}</div>`;
-                setTimeout(() => { closeChangeArea(); doListBookings(); }, 2000);
-            });
+            }
+
+                , (res) => {
+                    if (!res.ok) {
+                        el('changeMsg').innerHTML = '<div class="msg-error">' + esc(res.error) + '</div>'; return;
+                    }
+
+                    el('changeMsg').innerHTML = `<div class="msg-success" >✅ 変更完了: ${esc(res.booking.booking_id)
+                        }
+
+                </div>`;
+
+                    setTimeout(() => {
+                        closeChangeArea(); doListBookings();
+                    }
+
+                        , 2000);
+                });
         }
 
         /* --- キャンセル --- */
         function doCancel(bookingId) {
-            if (!confirm(`予約 ${bookingId} をキャンセルしますか？`)) return;
-            callApi('apiCancelBooking', { line_user_id: STATE.line_user_id, booking_id: bookingId }, (res) => {
-                if (!res.ok) { showToast(res.error, true); return; }
-                if (navigator.vibrate) navigator.vibrate(80);
-                showToast('キャンセルしました');
-                doListBookings();
-            });
+            if (!confirm(`予約 ${bookingId
+                }
+
+                    をキャンセルしますか？`)) return;
+
+            callApi('apiCancelBooking', {
+                line_user_id: STATE.line_user_id, booking_id: bookingId
+            }
+
+                , (res) => {
+                    if (!res.ok) {
+                        showToast(res.error, true); return;
+                    }
+
+                    if (navigator.vibrate) navigator.vibrate(80);
+                    showToast('キャンセルしました');
+                    doListBookings();
+                });
         }
 
         /* ========== 日付ナビゲーション ========== */
         function shiftDate(inputId, days) {
             const inp = el(inputId);
+
             if (!inp.value) {
-                const d = new Date(); d.setDate(d.getDate() + 1);
+                const d = new Date();
+                d.setDate(d.getDate() + 1);
                 inp.value = fmtDate(d);
             }
+
             const d = new Date(inp.value + 'T00:00:00');
             d.setDate(d.getDate() + days);
             inp.value = fmtDate(d);
@@ -2171,6 +2940,7 @@
             requestAnimationFrame(() => el('confirmSheet').classList.add('show'));
             document.body.style.overflow = 'hidden';
         }
+
         function closeConfirmSheet() {
             el('sheetOverlay').classList.remove('show');
             el('confirmSheet').classList.remove('show');
@@ -2181,10 +2951,15 @@
         function copyId(id) {
             if (navigator.clipboard) {
                 navigator.clipboard.writeText(id).then(() => showToast('コピーしました: ' + id));
-            } else {
+            }
+
+            else {
                 const ta = document.createElement('textarea');
-                ta.value = id; ta.style.position = 'fixed'; ta.style.opacity = '0';
-                document.body.appendChild(ta); ta.select();
+                ta.value = id;
+                ta.style.position = 'fixed';
+                ta.style.opacity = '0';
+                document.body.appendChild(ta);
+                ta.select();
                 document.execCommand('copy');
                 document.body.removeChild(ta);
                 showToast('コピーしました: ' + id);
@@ -2210,6 +2985,7 @@
             const isDark = document.body.classList.contains('dark');
             localStorage.setItem('mytone_dark', isDark ? '1' : '0');
         }
+
         // \u8d77\u52d5\u6642\u306b\u8a2d\u5b9a\u3092\u5fa9\u5143
         (function () {
             if (localStorage.getItem('mytone_dark') === '1') document.body.classList.add('dark');
@@ -2219,22 +2995,38 @@
         function showSkeleton(targetId, count) {
             count = count || 3;
             var h = '';
+
             for (var i = 0; i < count; i++) {
                 h += '<div class="skeleton-item"><div style="padding:12px"><div class="skeleton-line medium"></div><div class="skeleton-line short"></div></div></div>';
             }
+
             el(targetId).innerHTML = h;
         }
 
         /* ========== \u30d7\u30eb\u30c8\u30a5\u30ea\u30d5\u30ec\u30c3\u30b7\u30e5 ========== */
         function setPullToRefresh(onRefresh) {
-            let startY = 0, pulling = false;
+            let startY = 0,
+                pulling = false;
             const pullEl = el('pullIndicator');
-            document.addEventListener('touchstart', (e) => { startY = e.touches[0].clientY; }, { passive: true });
+
+            document.addEventListener('touchstart', (e) => {
+                startY = e.touches[0].clientY;
+            }
+
+                , {
+                    passive: true
+                });
+
             document.addEventListener('touchmove', (e) => {
                 if (window.scrollY === 0 && e.touches[0].clientY - startY > 60) {
                     pulling = true; pullEl.classList.add('visible');
                 }
-            }, { passive: true });
+            }
+
+                , {
+                    passive: true
+                });
+
             document.addEventListener('touchend', () => {
                 if (pulling) {
                     pulling = false; pullEl.classList.remove('visible');
@@ -2248,21 +3040,36 @@
             const calEl = el('weekCalArea');
             if (!calEl) return;
             const today = new Date();
-            const DOW = ['\u65e5', '\u6708', '\u706b', '\u6c34', '\u6728', '\u91d1', '\u571f'];
+            const DOW = ['\u65e5',
+                '\u6708',
+                '\u706b',
+                '\u6c34',
+                '\u6728',
+                '\u91d1',
+                '\u571f'];
             const curVal = el('searchDate') ? el('searchDate').value : '';
             let h = '';
+
             for (let i = 0; i < 7; i++) {
                 const d = new Date(today);
                 d.setDate(today.getDate() + i);
                 const ymd = fmtDate(d);
                 const isSel = curVal === ymd;
                 const isToday = i === 0;
-                h += `<div class="week-day${isToday ? ' wd-today' : ''}${isSel ? ' wd-selected' : ''}" onclick="if(el('searchDate'))el('searchDate').value='${ymd}';renderWeekCal()">
-  <div class="wd-date">${d.getMonth() + 1}/${d.getDate()}</div>
-  <div class="wd-dow">${DOW[d.getDay()]}</div>
-  <div class="wd-slots">&nbsp;</div>
-</div>`;
+
+                h += `<div class="week-day${isToday ? ' wd-today' : ''}${isSel ? ' wd-selected' : ''}" onclick="if(el('searchDate'))el('searchDate').value='${ymd}';renderWeekCal()"><div class="wd-date">${d.getMonth() + 1
+                    }
+
+                /${d.getDate()
+                    }
+
+                </div><div class="wd-dow">${DOW[d.getDay()]
+                    }
+
+                </div><div class="wd-slots">&nbsp;
+                </div></div>`;
             }
+
             calEl.innerHTML = h;
         }
 
@@ -2270,13 +3077,22 @@
         function loadDiagList() {
             const sel = el('diagFilter');
             if (!sel) return;
-            callApi('apiGetDiagList', { line_user_id: STATE.line_user_id }, (res) => {
-                if (!res.ok || !res.diags) return;
-                sel.innerHTML = '<option value="">\u25cb \u6307\u5b9a\u306a\u3057\uff08\u5168\u54e1\u5bfe\u8c61\uff09</option>';
-                res.diags.forEach(d => {
-                    sel.innerHTML += `<option value="${esc(d.diag_id)}">${esc(d.diag_name)}</option>`;
+
+            callApi('apiGetDiagList', {
+                line_user_id: STATE.line_user_id
+            }
+
+                , (res) => {
+                    if (!res.ok || !res.diags) return;
+                    sel.innerHTML = '<option value="">\u25cb \u6307\u5b9a\u306a\u3057\uff08\u5168\u54e1\u5bfe\u8c61\uff09</option>';
+
+                    res.diags.forEach(d => {
+                        sel.innerHTML += `<option value="${esc(d.diag_id)}" >${esc(d.diag_name)
+                            }
+
+                        </option>`;
+                    });
                 });
-            });
         }
 
         /* ========== LINE\u901a\u77e5\u30d7\u30ec\u30d3\u30e5\u30fc ========== */
@@ -2284,34 +3100,82 @@
             const box = el('linePreviewBox');
             if (!box || !STATE.selectedSlot) return;
             const dt = fmtDt(STATE.selectedSlot);
-            box.innerHTML = `\u3010MYTONE\u4e88\u7d04\u304a\u77e5\u3089\u305b\u3011<br>\u65b0\u3057\u3044\u4e88\u7d04\u304c\u5165\u308a\u307e\u3057\u305f&#x1f4c5;<br>\u9867\u5ba2\u540d: ${esc(STATE.customer.name || '')}<br>\u7a2e\u5225: ${esc(STATE.step_type)}<br>\u65e5\u6642: ${dt}<br>\u8a3a\u65ad\u58eb: ${esc(STATE.selectedDiagName)}<br><small>\u203b\u8a73\u7d30\u306f\u30b7\u30b9\u30c6\u30e0\u3067\u3054\u78ba\u8a8d\u304f\u3060\u3055\u3044</small>`;
+            box.innerHTML = `\u3010MYTONE\u4e88\u7d04\u304a\u77e5\u3089\u305b\u3011<br>\u65b0\u3057\u3044\u4e88\u7d04\u304c\u5165\u308a\u307e\u3057\u305f&#x1f4c5;
+
+            <br>\u9867\u5ba2\u540d: ${esc(STATE.customer.name || '')
+                }
+
+            <br>\u7a2e\u5225: ${esc(STATE.step_type)
+                }
+
+            <br>\u65e5\u6642: ${dt
+                }
+
+            <br>\u8a3a\u65ad\u58eb: ${esc(STATE.selectedDiagName)
+                }
+
+            <br><small>\u203b\u8a73\u7d30\u306f\u30b7\u30b9\u30c6\u30e0\u3067\u3054\u78ba\u8a8d\u304f\u3060\u3055\u3044</small>`;
         }
 
         /* ========== \u9867\u5ba2\u5c65\u6b74\u30b7\u30fc\u30c8 ========== */
         function doViewHistory() {
             const phone = el('custPhone').value.trim();
-            if (!phone) { showToast('\u5148\u306b\u96fb\u8a71\u756a\u53f7\u3092\u5165\u529b\u3057\u3066\u304f\u3060\u3055\u3044', true); return; }
+
+            if (!phone) {
+                showToast('\u5148\u306b\u96fb\u8a71\u756a\u53f7\u3092\u5165\u529b\u3057\u3066\u304f\u3060\u3055\u3044', true);
+                return;
+            }
+
             el('historyContent').innerHTML = '<div class="loading-text" style="text-align:center;padding:20px"><div class="spinner" style="margin:0 auto 8px"></div>\u8aad\u8fbc\u4e2d...</div>';
             openHistorySheet();
-            callApi('apiGetCustomerHistory', { line_user_id: STATE.line_user_id, customer_phone: phone }, (res) => {
-                if (!res.ok) { el('historyContent').innerHTML = `<div class="msg-error">${esc(res.error)}</div>`; return; }
-                if (!res.bookings || res.bookings.length === 0) {
-                    el('historyContent').innerHTML = '<div class="msg-info">\u904e\u53bb\u306e\u4e88\u7d04\u306f\u3042\u308a\u307e\u305b\u3093</div>';
-                    return;
-                }
-                let h = `<p style="font-size:.8rem;color:#666;margin-bottom:8px">\ud83d\udcde ${esc(phone)}</p>`;
-                for (const b of res.bookings) {
-                    const col = b.status === 'CONFIRMED' || b.status === 'CHANGED' ? '#2e7d32' : b.status === 'CANCELED' ? '#c62828' : '#888';
-                    h += `<div class="history-item">\n  ${fmtDt(b.start_at)}<span class="history-step">${esc(b.step_type)}</span><br>\n  <span style="color:#555">\ud83d\udc68\u200d\u2695\ufe0f ${esc(b.diag_name)}</span>\n  <span style="float:right;font-size:.75rem;color:${col}">${esc(b.status)}</span>\n</div>`;
-                }
-                el('historyContent').innerHTML = h;
-            });
+
+            callApi('apiGetCustomerHistory', {
+                line_user_id: STATE.line_user_id, customer_phone: phone
+            }
+
+                , (res) => {
+                    if (!res.ok) {
+                        el('historyContent').innerHTML = '<div class="msg-error">' + esc(res.error) + '</div>'; return;
+                    }
+
+                    if (!res.bookings || res.bookings.length === 0) {
+                        el('historyContent').innerHTML = '<div class="msg-info">\u904e\u53bb\u306e\u4e88\u7d04\u306f\u3042\u308a\u307e\u305b\u3093</div>';
+                        return;
+                    }
+
+                    let h = `<p style="font-size:.8rem;color:#666;margin-bottom:8px" >\ud83d\udcde ${esc(phone)
+                        }
+
+                </p>`;
+
+                    for (const b of res.bookings) {
+                        const col = b.status === 'CONFIRMED' || b.status === 'CHANGED' ? '#2e7d32' : b.status === 'CANCELED' ? '#c62828' : '#888';
+
+                        h += `<div class="history-item" >\n ${fmtDt(b.start_at)
+                            }
+
+                    <span class="history-step" >${esc(b.step_type)
+                            }
+
+                    </span><br>\n <span style="color:#555" >\ud83d\udc68\u200d\u2695\ufe0f ${esc(b.diag_name)
+                            }
+
+                    </span>\n <span style="float:right;font-size:.75rem;color:${col}" >${esc(b.status)
+                            }
+
+                    </span>\n</div>`;
+                    }
+
+                    el('historyContent').innerHTML = h;
+                });
         }
+
         function openHistorySheet() {
             el('historyOverlay').classList.add('show');
             requestAnimationFrame(() => el('historySheet').classList.add('show'));
             document.body.style.overflow = 'hidden';
         }
+
         function closeHistorySheet() {
             el('historyOverlay').classList.remove('show');
             el('historySheet').classList.remove('show');
@@ -2320,35 +3184,51 @@
 
         /* ========== \u7ba1\u7406\u8005\u7d71\u8a08 ========== */
         function doAdminStats() {
-            ['statToday', 'statWeek', 'statMonth', 'statTotal'].forEach(id => {
-                const e = el(id); if (e) e.textContent = '\u2026';
-            });
-            callApi('apiAdminStats', { line_user_id: STATE.line_user_id }, (res) => {
-                if (!res.ok) return;
-                if (el('statToday')) el('statToday').textContent = res.today ?? '-';
-                if (el('statWeek')) el('statWeek').textContent = res.week ?? '-';
-                if (el('statMonth')) el('statMonth').textContent = res.month ?? '-';
-                if (el('statTotal')) el('statTotal').textContent = res.total ?? '-';
-            });
+
+            ['statToday',
+                'statWeek',
+                'statMonth',
+                'statTotal'].forEach(id => {
+                    const e = el(id); if (e) e.textContent = '\u2026';
+                });
+
+            callApi('apiAdminStats', {
+                line_user_id: STATE.line_user_id
+            }
+
+                , (res) => {
+                    if (!res.ok) return;
+                    if (el('statToday')) el('statToday').textContent = res.today ?? '-';
+                    if (el('statWeek')) el('statWeek').textContent = res.week ?? '-';
+                    if (el('statMonth')) el('statMonth').textContent = res.month ?? '-';
+                    if (el('statTotal')) el('statTotal').textContent = res.total ?? '-';
+                });
         }
 
         /* ========== \u30a8\u30e9\u30fc\u6642\u306e\u518d\u8a66\u884c\u30dc\u30bf\u30f3\u8868\u793a ========== */
         function showRetryError(targetId, msg, fn, payload, cb) {
-            const retryJson = JSON.stringify({ fn, payload }).replace(/"/g, '&quot;');
-            el(targetId).innerHTML = `<div class="msg-error">${esc(msg)}</div>
-<button class="btn-retry" onclick='var d=JSON.parse(this.dataset.r);callApi(d.fn,d.payload,function(r){if(!r.ok){showRetryError("${targetId}",r.error,d.fn,d.payload,null);}else{el("${targetId}").innerHTML="";}}' data-r="${retryJson}">\ud83d\udd04 \u518d\u8a66\u884c</button>`;
+            const retryJson = JSON.stringify({
+                fn, payload
+
+            }).replace(/"/g, '&quot;');
+            el(targetId).innerHTML = `<div class="msg-error" >${esc(msg)
+                }
+
+            </div> <button class="btn-retry" onclick='var d=JSON.parse(this.dataset.r);callApi(d.fn,d.payload,function(r){if(!r.ok){showRetryError("${targetId}",r.error,d.fn,d.payload,null);}else{el("${targetId}").innerHTML="";}}' data-r="${retryJson}" >\ud83d\udd04 \u518d\u8a66\u884c</button>`;
         }
 
         /* ========== 診断士UI ========== */
         function initDiagUI() {
             const sel = el('availTime');
             sel.innerHTML = '';
+
             for (let h = 7; h <= 21; h++) {
                 for (const m of ['00', '30']) {
-                    const v = `${String(h).padStart(2, '0')}:${m}`;
-                    sel.innerHTML += `<option value="${v}">${v}</option>`;
+                    const v = String(h).padStart(2, '0') + ':' + m;
+                    sel.innerHTML += '<option value="' + v + '">' + v + '</option>';
                 }
             }
+
             const tomorrow = new Date();
             tomorrow.setDate(tomorrow.getDate() + 1);
             el('availDate').value = fmtDate(tomorrow);
@@ -2357,10 +3237,13 @@
         function switchDiagTab(tab) {
             const tabs = document.querySelectorAll('#screenDiag .tab');
             tabs.forEach(t => t.classList.remove('active'));
+
             if (tab === 'add') {
                 tabs[0].classList.add('active');
                 show('diagAdd'); hide('diagList');
-            } else {
+            }
+
+            else {
                 tabs[1].classList.add('active');
                 hide('diagAdd'); show('diagList');
                 doListAvail();
@@ -2371,59 +3254,98 @@
             const dv = el('availDate').value;
             const tv = el('availTime').value;
             const bv = el('availBlocks').value;
-            if (!dv || !tv) { el('availMsg').innerHTML = '<div class="msg-error">日付と時刻を選択してください</div>'; return; }
+
+            if (!dv || !tv) {
+                el('availMsg').innerHTML = '<div class="msg-error">日付と時刻を選択してください</div>'; return;
+            }
+
             el('availMsg').innerHTML = '<div class="loading-text" style="text-align:center;padding:10px">作成中...</div>';
             const repeatWeeks = parseInt(el('availRepeat') ? el('availRepeat').value : '0') || 0;
+
             callApi('apiDiagCreateAvail', {
                 line_user_id: STATE.line_user_id,
                 date_ymd: dv,
                 start_hhmm: tv,
                 blocks: bv,
                 repeat_weeks: repeatWeeks,
-            }, (res) => {
-                if (!res.ok) {
-                    el('availMsg').innerHTML = `<div class="msg-error">${esc(res.error)}</div><button class="btn-retry" onclick="doCreateAvail()">&#x1f504; 再試行</button>`;
-                    return;
-                }
-                const cnt = res.created_count || 1;
-                el('availMsg').innerHTML = `<div class="msg-success">&#x2705; 稼働枠を${cnt}件作成しました</div>`;
-            });
+            }
+
+                , (res) => {
+                    if (!res.ok) {
+                        el('availMsg').innerHTML = `<div class="msg-error" >${esc(res.error)
+                            }
+
+                    </div><button class="btn-retry" onclick="doCreateAvail()" >&#x1f504; 再試行</button>`;
+                        return;
+                    }
+
+                    const cnt = res.created_count || 1;
+
+                    el('availMsg').innerHTML = `<div class="msg-success" >&#x2705; 稼働枠を${cnt
+                        }
+
+                件作成しました</div>`;
+                });
         }
 
         function doListAvail() {
             el('availList').innerHTML = '<div class="loading-text" style="text-align:center;padding:16px"><div class="spinner" style="margin:0 auto 8px"></div>読込中...</div>';
-            callApi('apiDiagListAvail', { line_user_id: STATE.line_user_id }, (res) => {
-                if (!res.ok) { el('availList').innerHTML = `<div class="msg-error">${esc(res.error)}</div>`; return; }
-                // 稼働枠カレンダーを更新
-                renderAvailCalendar(res.avail);
-                if (res.avail.length === 0) {
-                    el('availList').innerHTML = '<div class="msg-info">稼働枠がありません</div>';
-                    return;
-                }
-                let h = '';
-                for (const a of res.avail) {
-                    h += `<div class="avail-item">
-  <div class="avail-time">📅 ${fmtDt(a.start_at)} 〜 ${fmtTime(a.end_at)}</div>
-  <button class="btn btn-danger btn-small" onclick="doDeleteAvail('${esc(a.event_id)}')">削除</button>
-</div>`;
-                }
-                el('availList').innerHTML = h;
-            });
+
+            callApi('apiDiagListAvail', {
+                line_user_id: STATE.line_user_id
+            }
+
+                , (res) => {
+                    if (!res.ok) {
+                        el('availList').innerHTML = '<div class="msg-error">' + esc(res.error) + '</div>'; return;
+                    }
+
+                    // 稼働枠カレンダーを更新
+                    renderAvailCalendar(res.avail);
+
+                    if (res.avail.length === 0) {
+                        el('availList').innerHTML = '<div class="msg-info">稼働枠がありません</div>';
+                        return;
+                    }
+
+                    let h = '';
+
+                    for (const a of res.avail) {
+                        h += `<div class="avail-item" > <div class="avail-time" >📅 ${fmtDt(a.start_at)
+                            }
+
+                    〜 ${fmtTime(a.end_at)
+                            }
+
+                    </div> <button class="btn btn-danger btn-small" onclick="doDeleteAvail('${esc(a.event_id)}')" >削除</button> </div>`;
+                    }
+
+                    el('availList').innerHTML = h;
+                });
         }
 
         function doDeleteAvail(eventId) {
             if (!confirm('この稼働枠を削除しますか？')) return;
-            callApi('apiDiagDeleteAvail', { line_user_id: STATE.line_user_id, event_id: eventId }, (res) => {
-                if (!res.ok) { showToast(res.error, true); return; }
-                showToast('削除しました');
-                doListAvail();
-            });
+
+            callApi('apiDiagDeleteAvail', {
+                line_user_id: STATE.line_user_id, event_id: eventId
+            }
+
+                , (res) => {
+                    if (!res.ok) {
+                        showToast(res.error, true); return;
+                    }
+
+                    showToast('削除しました');
+                    doListAvail();
+                });
         }
 
         /* ========== トースト通知 ========== */
         function showToast(msg, isError = false) {
             const t = document.createElement('div');
             t.textContent = msg;
+
             Object.assign(t.style, {
                 position: 'fixed',
                 bottom: '24px',
@@ -2442,27 +3364,56 @@
                 transition: 'opacity 0.3s',
             });
             document.body.appendChild(t);
-            setTimeout(() => { t.style.opacity = '0'; setTimeout(() => t.remove(), 300); }, 2500);
+
+            setTimeout(() => {
+                t.style.opacity = '0'; setTimeout(() => t.remove(), 300);
+            }
+
+                , 2500);
         }
 
         /* ========== API呼び出しユーティリティ (fetch版) ========== */
         function callApi(fn, payload, cb) {
+
             // GAS doPost へ POST する
             // Content-Type: text/plain でCORSプリフライトを回避
             fetch(GAS_URL, {
+
                 method: 'POST',
-                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                body: JSON.stringify({ action: fn, payload: payload }),
-            })
-                .then(function (res) { return res.json(); })
-                .then(function (data) { cb(data); })
-                .catch(function (err) { cb({ ok: false, error: String(err) }); });
+                headers: {
+                    'Content-Type': 'text/plain;charset=utf-8'
+                }
+
+                ,
+                body: JSON.stringify({
+                    action: fn, payload: payload
+
+                }),
+            }).then(function (res) {
+                return res.json();
+
+            }).then(function (data) {
+                cb(data);
+
+            }).catch(function (err) {
+                cb({
+                    ok: false, error: String(err)
+                });
+            });
         }
 
         /* ========== ヘルパー ========== */
-        function el(id) { return document.getElementById(id); }
-        function show(id) { const e = el(id); if (e) e.classList.remove('hidden'); }
-        function hide(id) { const e = el(id); if (e) e.classList.add('hidden'); }
+        function el(id) {
+            return document.getElementById(id);
+        }
+
+        function show(id) {
+            const e = el(id); if (e) e.classList.remove('hidden');
+        }
+
+        function hide(id) {
+            const e = el(id); if (e) e.classList.add('hidden');
+        }
 
         function esc(s) {
             if (s == null) return '';
@@ -2475,17 +3426,20 @@
             const y = d.getFullYear();
             const m = String(d.getMonth() + 1).padStart(2, '0');
             const dd = String(d.getDate()).padStart(2, '0');
-            return `${y}-${m}-${dd}`;
+
+            return y + '-' + m + '-' + dd;
         }
 
         function fmtDt(iso) {
             const d = new Date(iso);
-            return `${d.getMonth() + 1}/${d.getDate()} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+
+            return (d.getMonth() + 1) + '/' + d.getDate() + ' ' + String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
         }
 
         function fmtTime(iso) {
             const d = new Date(iso);
-            return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+
+            return String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
         }
 
         /* ========== 10. フォントサイズ切替 ========== */
@@ -2493,6 +3447,7 @@
             document.body.classList.toggle('font-lg');
             localStorage.setItem('mytone_font', document.body.classList.contains('font-lg') ? 'lg' : '');
         }
+
         // 初期化時に復元
         if (localStorage.getItem('mytone_font') === 'lg') document.body.classList.add('font-lg');
 
@@ -2507,17 +3462,20 @@
             btn.classList.add('active');
             renderFilteredBookings();
         }
+
         function toggleSort() {
             _sortAsc = !_sortAsc;
             el('sortBtn').textContent = _sortAsc ? '▲ 日付順' : '▼ 日付逆順';
             renderFilteredBookings();
         }
+
         function renderFilteredBookings() {
             let list = [..._cachedBookings];
             // ステータスフィルタ
             if (_filterStatus === 'confirmed') list = list.filter(b => b.status === 'CONFIRMED');
             else if (_filterStatus === 'changed') list = list.filter(b => b.status === 'CHANGED');
             else if (_filterStatus === 'canceled') list = list.filter(b => b.status === 'CANCELED');
+
             // ソート
             list.sort((a, b) => {
                 const da = new Date(a.start_at), db = new Date(b.start_at);
@@ -2532,41 +3490,73 @@
                 el('bookingsList').innerHTML = '<div class="msg-info">該当する予約がありません</div>';
                 return;
             }
+
             const now = new Date();
             const todayStr = fmtDate(now);
             const tomorrow = new Date(now); tomorrow.setDate(tomorrow.getDate() + 1);
             const tomorrowStr = fmtDate(tomorrow);
             const weekLater = new Date(now); weekLater.setDate(weekLater.getDate() + 7);
             let h = '';
+
             for (const b of bookings) {
                 const startDate = new Date(b.start_at);
                 const startDateStr = fmtDate(startDate);
                 let dotCls = 'dot-later', dateCls = 'bi-date-later';
-                if (startDateStr === todayStr) { dotCls = 'dot-today'; dateCls = 'bi-date-today'; }
-                else if (startDateStr === tomorrowStr) { dotCls = 'dot-tomorrow'; dateCls = 'bi-date-tomorrow'; }
-                else if (startDate <= weekLater) { dotCls = 'dot-week'; dateCls = 'bi-date-week'; }
+
+                if (startDateStr === todayStr) {
+                    dotCls = 'dot-today'; dateCls = 'bi-date-today';
+                }
+
+                else if (startDateStr === tomorrowStr) {
+                    dotCls = 'dot-tomorrow'; dateCls = 'bi-date-tomorrow';
+                }
+
+                else if (startDate <= weekLater) {
+                    dotCls = 'dot-week'; dateCls = 'bi-date-week';
+                }
+
                 const step2Btn = b.step_type === 'STEP1' && b.status !== 'CANCELED'
-                    ? `<button class="btn btn-outline btn-small" onclick="startStep2FromBooking('${esc(b.booking_id)}','${esc(b.diag_id)}','${esc(b.customer_name)}','${esc(b.customer_phone)}')">&#x1f504; STEP2予約</button>`
-                    : '';
-                const reBookBtn = `<button class="btn btn-outline btn-small" onclick="quickRebook('${esc(b.customer_name)}','${esc(b.customer_phone)}','${esc(b.gender || '')}','${esc(b.age || '')}')">📋 再予約</button>`;
-                const memoLine = b.memo ? `<div class="bi-memo">💬 ${esc(b.memo)}</div>` : '';
+                    ? `<button class="btn btn-outline btn-small" onclick="startStep2FromBooking('${esc(b.booking_id)}','${esc(b.diag_id)}','${esc(b.customer_name)}','${esc(b.customer_phone)}')" >&#x1f504; STEP2予約</button>` : '';
+                const reBookBtn = `<button class="btn btn-outline btn-small" onclick="quickRebook('${esc(b.customer_name)}','${esc(b.customer_phone)}','${esc(b.gender || '')}','${esc(b.age || '')}')" >📋 再予約</button>`;
+
+                const memoLine = b.memo ? `<div class="bi-memo" >💬 ${esc(b.memo)
+                    }
+
+                </div>` : '';
                 const statusBadge = b.status === 'CANCELED' ? ' <span style="color:#e53935;font-size:0.75rem">キャンセル済</span>' : '';
                 h += `<div class="booking-item" data-bid="${esc(b.booking_id)}"
-  ontouchstart="ctxTouchStart(event,this)" ontouchend="ctxTouchEnd()" ontouchmove="ctxTouchEnd()"
-  oncontextmenu="openCtxMenu(event,'${esc(b.booking_id)}','${esc(b.customer_name)}','${esc(b.customer_phone)}','${esc(b.gender || '')}','${esc(b.age || '')}');return false">
-  <div class="bi-name">${esc(b.customer_name)}<span class="bi-step">${esc(b.step_type)}</span>${statusBadge}</div>
-  <div class="bi-sub ${dateCls}"><span class="urgency-dot ${dotCls}"></span>📅 ${fmtDt(b.start_at)}</div>
-  <div class="bi-sub">👨‍⚕️ ${esc(b.diag_name)}</div>
-  <div class="bi-sub">📞 ${esc(b.customer_phone)}</div>
-  ${memoLine}
-  <div class="bi-actions">
-    <button class="btn btn-secondary btn-small" onclick="openChange('${esc(b.booking_id)}')">変更</button>
-    <button class="btn btn-danger btn-small" onclick="doCancel('${esc(b.booking_id)}')">キャンセル</button>
-    ${step2Btn}
-    ${reBookBtn}
-  </div>
-</div>`;
+                ontouchstart="ctxTouchStart(event,this)" ontouchend="ctxTouchEnd()" ontouchmove="ctxTouchEnd()"
+
+                oncontextmenu="openCtxMenu(event,'${esc(b.booking_id)}','${esc(b.customer_name)}','${esc(b.customer_phone)}','${esc(b.gender || '')}','${esc(b.age || '')}');return false" > <div class="bi-name" >${esc(b.customer_name)
+                    }
+
+                <span class="bi-step" >${esc(b.step_type)
+                    }
+
+                </span>${statusBadge
+                    }
+
+                </div> <div class="bi-sub ${dateCls}" ><span class="urgency-dot ${dotCls}" ></span>📅 ${fmtDt(b.start_at)
+                    }
+
+                </div> <div class="bi-sub" >👨‍⚕️ ${esc(b.diag_name)
+                    }
+
+                </div> <div class="bi-sub" >📞 ${esc(b.customer_phone)
+                    }
+
+                </div> ${memoLine
+                    }
+
+                <div class="bi-actions" > <button class="btn btn-secondary btn-small" onclick="openChange('${esc(b.booking_id)}')" >変更</button> <button class="btn btn-danger btn-small" onclick="doCancel('${esc(b.booking_id)}')" >キャンセル</button> ${step2Btn
+                    }
+
+                ${reBookBtn
+                    }
+
+                </div> </div>`;
             }
+
             el('bookingsList').innerHTML = h;
         }
 
@@ -2575,6 +3565,7 @@
             // 新規予約タブに切り替え
             switchStaffTab('new');
             startStep('STEP1');
+
             // 顧客情報を自動入力
             setTimeout(() => {
                 el('custName').value = name;
@@ -2582,30 +3573,49 @@
                 if (gender) el('custGender').value = gender;
                 if (age) el('custAge').value = age;
                 showToast('顧客情報を引き継ぎました');
-            }, 100);
+            }
+
+                , 100);
         }
 
         /* ========== 6. 長押しコンテキストメニュー ========== */
         let _ctxTimer = null;
-        let _ctxData = {};
+
+        let _ctxData = {}
+
+            ;
 
         function ctxTouchStart(e, elem) {
             _ctxTimer = setTimeout(() => {
                 const bid = elem.dataset.bid;
                 const touch = e.touches[0];
                 openCtxMenuAt(touch.clientX, touch.clientY, bid, '', '', '', '');
-            }, 500);
+            }
+
+                , 500);
         }
+
         function ctxTouchEnd() {
             clearTimeout(_ctxTimer);
         }
+
         function openCtxMenu(e, bid, name, phone, gender, age) {
             e.preventDefault();
-            _ctxData = { bid, name, phone, gender, age };
+
+            _ctxData = {
+                bid, name, phone, gender, age
+            }
+
+                ;
             openCtxMenuAt(e.clientX || e.pageX, e.clientY || e.pageY, bid, name, phone, gender, age);
         }
+
         function openCtxMenuAt(x, y, bid, name, phone, gender, age) {
-            _ctxData = { bid, name, phone, gender, age };
+            _ctxData = {
+                bid, name, phone, gender, age
+            }
+
+                ;
             const menu = el('ctxMenu');
             const overlay = el('ctxOverlay');
             // 画面はみ出し防止
@@ -2618,12 +3628,15 @@
             overlay.classList.add('show');
             if (navigator.vibrate) navigator.vibrate(30);
         }
+
         function closeCtxMenu() {
             el('ctxMenu').classList.remove('show');
             el('ctxOverlay').classList.remove('show');
         }
+
         function ctxAction(action) {
             closeCtxMenu();
+
             switch (action) {
                 case 'change': openChange(_ctxData.bid); break;
                 case 'cancel': doCancel(_ctxData.bid); break;
@@ -2637,6 +3650,7 @@
             const colors = ['#1b5e20', '#4caf50', '#81c784', '#ffeb3b', '#ff9800', '#e91e63', '#2196f3'];
             const container = document.createElement('div');
             container.className = 'confetti-container';
+
             for (let i = 0; i < 40; i++) {
                 const piece = document.createElement('div');
                 piece.className = 'confetti-piece';
@@ -2648,6 +3662,7 @@
                 piece.style.height = (6 + Math.random() * 8) + 'px';
                 container.appendChild(piece);
             }
+
             document.body.appendChild(container);
             setTimeout(() => container.remove(), 3000);
         }
@@ -2667,17 +3682,22 @@
 
             const year = _availCalDate.getFullYear();
             const month = _availCalDate.getMonth();
-            calTitle.textContent = `${year}年${month + 1}月`;
+
+            calTitle.textContent = year + '年' + (month + 1) + '月';
 
             const DOW = ['日', '月', '火', '水', '木', '金', '土'];
-            let h = DOW.map(d => `<div class="avail-cal-head">${d}</div>`).join('');
+
+            let h = DOW.map(d => '<div class="avail-cal-head">' + d + '</div>').join('');
 
             const firstDay = new Date(year, month, 1).getDay();
             const daysInMonth = new Date(year, month + 1, 0).getDate();
             const todayStr = fmtDate(new Date());
 
             // 稼働枠データから日ごとのカウント集計
-            const countMap = {};
+            const countMap = {}
+
+                ;
+
             if (availData) {
                 for (const a of availData) {
                     const d = a.start_at ? a.start_at.substring(0, 10) : '';
@@ -2694,7 +3714,8 @@
                 let cls = 'avail-cal-cell';
                 if (cnt > 0) cls += ' has-avail';
                 if (ymd === todayStr) cls += ' today';
-                h += `<div class="${cls}"><div>${d}</div>${cnt > 0 ? `<div class="ac-count">${cnt}枠</div>` : ''}</div>`;
+
+                h += '<div class="' + cls + '"><div>' + d + '</div>' + (cnt > 0 ? '<div class="ac-count">' + cnt + '枠</div>' : '') + '</div>';
             }
 
             calGrid.innerHTML = h;
@@ -2704,16 +3725,22 @@
         window.addEventListener('online', () => {
             el('offlineBanner').classList.remove('show');
         });
+
         window.addEventListener('offline', () => {
             el('offlineBanner').classList.add('show');
             // キャッシュから表示を試みる
             const cached = localStorage.getItem('mytone_bookings_cache');
+
             if (cached) {
                 try {
                     const data = JSON.parse(cached);
                     _cachedBookings = data;
                     renderFilteredBookings();
-                } catch (e) { /* ignore */ }
+                }
+
+                catch (e) {
+                    /* ignore */
+                }
             }
         });
 
@@ -2721,15 +3748,103 @@
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.register('./sw.js').catch(() => { });
         }
-    </script>
 
+        /* ========== スプラッシュ画面制御 ========== */
+        (function initSplash() {
+            var splash = document.getElementById('screenSplash');
+            if (!splash) return;
+
+            setTimeout(function () {
+                splash.classList.add('splash-hiding');
+
+                setTimeout(function () {
+                    splash.style.display = 'none';
+                }
+
+                    , 600);
+            }
+
+                , 1800);
+        })();
+
+        /* ========== FABボタン制御 ========== */
+        function fabAction() {
+            var s = document.getElementById('stepSelect');
+
+            if (s) s.scrollIntoView({
+                behavior: 'smooth', block: 'start'
+            });
+        }
+
+        function updateFabVisibility() {
+            var fab = document.getElementById('fabBtn');
+            if (!fab) return;
+            var staffScreen = document.getElementById('screenStaff');
+
+            if (staffScreen && !staffScreen.classList.contains('hidden')) {
+                fab.classList.remove('hidden');
+            }
+
+            else {
+                fab.classList.add('hidden');
+            }
+        }
+
+        /* ========== スワイプ操作対応 ========== */
+        (function initSwipe() {
+            function addSwipe(screenId, tabsSelector) {
+                var screen = document.getElementById(screenId);
+                if (!screen) return;
+                var sx = 0, sy = 0;
+
+                screen.addEventListener('touchstart', function (e) {
+                    sx = e.touches[0].clientX;
+                    sy = e.touches[0].clientY;
+                }
+
+                    , {
+                        passive: true
+                    });
+
+                screen.addEventListener('touchend', function (e) {
+                    var dx = e.changedTouches[0].clientX - sx;
+                    var dy = e.changedTouches[0].clientY - sy;
+                    if (Math.abs(dx) < 50 || Math.abs(dy) > Math.abs(dx)) return;
+                    var tabs = document.querySelectorAll(tabsSelector + ' .tab');
+                    if (!tabs.length) return;
+
+                    var ai = Array.from(tabs).findIndex(function (t) {
+                        return t.classList.contains('active');
+                    });
+
+                    if (dx < 0 && ai < tabs.length - 1) {
+                        tabs[ai + 1].click();
+                    }
+
+                    else if (dx > 0 && ai > 0) {
+                        tabs[ai - 1].click();
+                    }
+                }
+
+                    , {
+                        passive: true
+                    });
+            }
+
+            addSwipe('screenStaff', '#staffTabs');
+            addSwipe('screenDiag', '#diagTabs');
+        })();
+
+    </script>
+    <!--==========FABボタン==========--> <button id="fabBtn" class="fab hidden" onclick="fabAction()" title="new booking"
+        aria-label="new booking">&#9988; </button>
     <!-- コンテキストメニュー（長押し用） -->
     <div id="ctxOverlay" class="ctx-overlay" onclick="closeCtxMenu()"></div>
-    <div id="ctxMenu" class="ctx-menu">
-        <button class="ctx-item" onclick="ctxAction('change')">✏️ 変更</button>
-        <button class="ctx-item" onclick="ctxAction('copy')">📋 IDコピー</button>
-        <button class="ctx-item" onclick="ctxAction('rebook')">🔁 再予約</button>
-        <button class="ctx-item danger" onclick="ctxAction('cancel')">❌ キャンセル</button>
+    <div id="ctxMenu" class="ctx-menu"> <button class="ctx-item" onclick="ctxAction('change')">✏️ 変更</button> <button
+            class="ctx-item" onclick="ctxAction('copy')">📋 IDコピー</button>
+        <button class="ctx-item" onclick="ctxAction('rebook')">🔁
+            再予約</button> <button class="ctx-item danger" onclick="ctxAction('cancel')">❌
+            キャンセル</button>
     </div>
 </body>
 
