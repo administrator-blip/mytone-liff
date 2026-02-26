@@ -1090,6 +1090,39 @@
             color: #fff;
         }
 
+        /* 稼働可能マーク */
+        .wd-avail-mark {
+            font-size: 0.7rem;
+            font-weight: 700;
+            color: #5ba88c;
+            margin-top: 2px;
+            line-height: 1;
+        }
+
+        .week-day.wd-selected .wd-avail-mark {
+            color: #fff;
+        }
+
+        .wd-avail-time {
+            font-size: 0.55rem;
+            color: #999;
+            margin-top: 1px;
+            line-height: 1.1;
+            white-space: nowrap;
+        }
+
+        .week-day.wd-selected .wd-avail-time {
+            color: rgba(255, 255, 255, 0.85);
+        }
+
+        body.dark .wd-avail-mark {
+            color: #7cc9a8;
+        }
+
+        body.dark .wd-avail-time {
+            color: #aaa;
+        }
+
         /* ========== LINEプレビュー ========== */
         .line-preview {
             background: #06c755;
@@ -2530,6 +2563,11 @@
             loadDiagList();
             renderWeekCal();
 
+            // 基準日変更時に週間カレンダーを連動
+            el('searchDate').addEventListener('change', function () {
+                renderWeekCal();
+            });
+
             resetNewBooking();
         }
 
@@ -3035,6 +3073,11 @@
             const d = new Date(inp.value + 'T00:00:00');
             d.setDate(d.getDate() + days);
             inp.value = fmtDate(d);
+
+            // 基準日(searchDate)変更時は週間カレンダーを連動
+            if (inputId === 'searchDate') {
+                renderWeekCal();
+            }
         }
 
         /* ========== ボトムシート制御 ========== */
@@ -3113,37 +3156,59 @@
             const calEl = el('weekCalArea');
             if (!calEl) return;
             const today = new Date();
-            const DOW = ['\u65e5',
-                '\u6708',
-                '\u706b',
-                '\u6c34',
-                '\u6728',
-                '\u91d1',
-                '\u571f'];
+            const todayStr = fmtDate(today);
+            const DOW = ['\u65e5', '\u6708', '\u706b', '\u6c34', '\u6728', '\u91d1', '\u571f'];
             const curVal = el('searchDate') ? el('searchDate').value : '';
+
+            // 基準日を中心に前3日〜後3日の7日間を表示
+            let baseDate;
+            if (curVal) {
+                baseDate = new Date(curVal + 'T00:00:00');
+            } else {
+                baseDate = new Date(today);
+            }
+
             let h = '';
-
-            for (let i = 0; i < 7; i++) {
-                const d = new Date(today);
-                d.setDate(today.getDate() + i);
+            const weekDates = [];
+            for (let i = -3; i <= 3; i++) {
+                const d = new Date(baseDate);
+                d.setDate(baseDate.getDate() + i);
                 const ymd = fmtDate(d);
+                weekDates.push(ymd);
                 const isSel = curVal === ymd;
-                const isToday = i === 0;
+                const isToday = ymd === todayStr;
 
-                h += `<div class="week-day${isToday ? ' wd-today' : ''}${isSel ? ' wd-selected' : ''}" onclick="if(el('searchDate'))el('searchDate').value='${ymd}';renderWeekCal()"><div class="wd-date">${d.getMonth() + 1
-                    }
-
-                /${d.getDate()
-                    }
-
-                </div><div class="wd-dow">${DOW[d.getDay()]
-                    }
-
-                </div><div class="wd-slots">&nbsp;
-                </div></div>`;
+                h += `<div class="week-day${isToday ? ' wd-today' : ''}${isSel ? ' wd-selected' : ''}" data-ymd="${ymd}" onclick="if(el('searchDate'))el('searchDate').value='${ymd}';renderWeekCal()">`;
+                h += `<div class="wd-date">${d.getMonth() + 1}/${d.getDate()}</div>`;
+                h += `<div class="wd-dow">${DOW[d.getDay()]}</div>`;
+                h += `<div class="wd-slots" id="wdSlot_${ymd}">&nbsp;</div>`;
+                h += `</div>`;
             }
 
             calEl.innerHTML = h;
+
+            // 稼働情報を非同期で取得してマークを更新
+            if (STATE.line_user_id && STATE.role === 'staff') {
+                callApi('apiWeekAvailSummary', {
+                    line_user_id: STATE.line_user_id,
+                    base_date: fmtDate(baseDate)
+                }, function (res) {
+                    if (!res.ok || !res.days) return;
+                    res.days.forEach(function (day) {
+                        const slotEl = document.getElementById('wdSlot_' + day.date);
+                        if (!slotEl) return;
+                        if (day.has_avail) {
+                            let markHtml = '<div class="wd-avail-mark">○</div>';
+                            if (day.summary) {
+                                markHtml += '<div class="wd-avail-time">' + esc(day.summary) + '</div>';
+                            }
+                            slotEl.innerHTML = markHtml;
+                        } else {
+                            slotEl.innerHTML = '<div style="font-size:0.6rem;color:#ccc">—</div>';
+                        }
+                    });
+                });
+            }
         }
 
         /* ========== \u8a3a\u65ad\u58eb\u30ea\u30b9\u30c8\u8aad\u8fbc ========== */
