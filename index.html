@@ -1107,8 +1107,10 @@
             font-size: 0.55rem;
             color: #999;
             margin-top: 1px;
-            line-height: 1.1;
-            white-space: nowrap;
+            line-height: 1.3;
+            word-break: break-all;
+            white-space: normal;
+            text-align: center;
         }
 
         .week-day.wd-selected .wd-avail-time {
@@ -3200,7 +3202,9 @@
                         if (day.has_avail) {
                             let markHtml = '<div class="wd-avail-mark">○</div>';
                             if (day.summary) {
-                                markHtml += '<div class="wd-avail-time">' + esc(day.summary) + '</div>';
+                                // 「〜」を改行に置換して上下2段表示にする
+                                const summaryHtml = esc(day.summary).replace(/〜/g, '<br>');
+                                markHtml += '<div class="wd-avail-time">' + summaryHtml + '</div>';
                             }
                             slotEl.innerHTML = markHtml;
                         } else {
@@ -3986,50 +3990,7 @@
             }
         }
 
-        /* ========== スワイプ操作対応 ========== */
-        (function initSwipe() {
-            function addSwipe(screenId, tabsSelector) {
-                var screen = document.getElementById(screenId);
-                if (!screen) return;
-                var sx = 0, sy = 0;
-
-                screen.addEventListener('touchstart', function (e) {
-                    sx = e.touches[0].clientX;
-                    sy = e.touches[0].clientY;
-                }
-
-                    , {
-                        passive: true
-                    });
-
-                screen.addEventListener('touchend', function (e) {
-                    var dx = e.changedTouches[0].clientX - sx;
-                    var dy = e.changedTouches[0].clientY - sy;
-                    if (Math.abs(dx) < 50 || Math.abs(dy) > Math.abs(dx)) return;
-                    var tabs = document.querySelectorAll(tabsSelector + ' .tab');
-                    if (!tabs.length) return;
-
-                    var ai = Array.from(tabs).findIndex(function (t) {
-                        return t.classList.contains('active');
-                    });
-
-                    if (dx < 0 && ai < tabs.length - 1) {
-                        tabs[ai + 1].click();
-                    }
-
-                    else if (dx > 0 && ai > 0) {
-                        tabs[ai - 1].click();
-                    }
-                }
-
-                    , {
-                        passive: true
-                    });
-            }
-
-            addSwipe('screenStaff', '#staffTabs');
-            addSwipe('screenDiag', '#diagTabs');
-        })();
+        /* スワイプによる画面遷移は撤廃（誤操作防止のため削除） */
 
     </script>
     <!--==========FABボタン==========--> <button id="fabBtn" class="fab hidden" onclick="fabAction()" title="new booking"
