@@ -2157,6 +2157,20 @@
         <div id="diagList" class="hidden">
             <div class="card">
                 <div class="card-title">稼働枠一覧</div>
+                <!-- 表示範囲の注記 -->
+                <div style="
+                    background: rgba(120,144,156,0.10);
+                    border-left: 3px solid #78909c;
+                    border-radius: 0 8px 8px 0;
+                    padding: 8px 12px;
+                    font-size: 0.78rem;
+                    color: #666;
+                    margin-bottom: 8px;
+                    line-height: 1.5;
+                ">
+                    ℹ️ 表示は本日から<b>60日分</b>（約2ヶ月先まで）です。<br>
+                    ※ 予約のお客様データは期間に関わらず全件表示されます。
+                </div>
                 <!-- 稼働枠カレンダービュー -->
                 <div class="avail-cal-nav"><button class="btn-nav" onclick="shiftAvailCalMonth(-1)">◄</button><span
                         id="availCalTitle"></span><button class="btn-nav" onclick="shiftAvailCalMonth(1)">►</button>
@@ -3438,58 +3452,84 @@
 
         /* ========== 診断士ダッシュボード ========== */
         function loadDiagDashboard() {
-            el('diagBookingsList').innerHTML = '<div class="loading-text" style="text-align:center;padding:16px"><div class="spinner" style="margin:0 auto 8px"></div>読込中...</div>';
+            const CACHE_KEY = 'mytone_dash_cache_' + STATE.diag_id;
 
-            callApi('apiListBookings', {
-                line_user_id: STATE.line_user_id, q_phone: '', q_name: ''
-            }, (res) => {
+            // SWR: キャッシュがあれば即座に表示
+            const cached = _loadCache(CACHE_KEY);
+            if (cached) {
+                _renderDiagDash(cached);
+                // 差替えバッジをリスト先頭に挿入
+                const listEl = el('diagBookingsList');
+                if (listEl) listEl.insertAdjacentHTML('afterbegin', '<div id="dashRefreshBadge" style="font-size:0.75rem;color:#888;text-align:center;padding:4px 0">🔄 最新情報を取得中...</div>');
+            } else {
+                el('diagBookingsList').innerHTML = '<div class="loading-text" style="text-align:center;padding:16px"><div class="spinner" style="margin:0 auto 8px"></div>読込中...</div>';
+            }
+
+            callApi('apiListBookings', { line_user_id: STATE.line_user_id, q_phone: '', q_name: '' }, (res) => {
                 if (!res.ok) {
-                    el('diagBookingsList').innerHTML = '<div class="msg-error">' + esc(res.error) + '</div>';
+                    if (!cached) el('diagBookingsList').innerHTML = '<div class="msg-error">' + esc(res.error) + '</div>';
+                    else showToast('更新失敗: ' + res.error, true);
                     return;
                 }
-
-                // 診断士IDでフィルタリング
-                const myBookings = (res.bookings || []).filter(b => b.diag_id === STATE.diag_id && b.status !== 'CANCELED');
-                const now = new Date();
-                const todayStr = fmtDate(now);
-
-                // 今週末の日付を計算
-                const weekEnd = new Date(now);
-                weekEnd.setDate(now.getDate() + (7 - now.getDay()));
-                const weekEndStr = fmtDate(weekEnd);
-
-                // 統計計算
-                let todayCount = 0, weekCount = 0;
-                myBookings.forEach(b => {
-                    const bDate = b.start_at ? b.start_at.substring(0, 10) : '';
-                    if (bDate === todayStr) todayCount++;
-                    if (bDate >= todayStr && bDate <= weekEndStr) weekCount++;
-                });
-
-                el('dashToday').textContent = todayCount;
-                el('dashWeek').textContent = weekCount;
-                el('dashTotal').textContent = myBookings.length;
-
-                // 予約リスト表示（日付順）
-                const sorted = myBookings.sort((a, b) => (a.start_at || '').localeCompare(b.start_at || ''));
-
-                if (sorted.length === 0) {
-                    el('diagBookingsList').innerHTML = '<div class="msg-info">予約がありません</div>';
-                    return;
-                }
-
-                let h = '';
-                for (const b of sorted) {
-                    const statusCls = (b.status === 'CONFIRMED') ? 'confirmed' : (b.status === 'CHANGED') ? 'changed' : 'canceled';
-                    const statusLabel = (b.status === 'CONFIRMED') ? '✅ 確定' : (b.status === 'CHANGED') ? '🔄 変更済' : '❌ キャンセル';
-                    h += `<div class="dash-booking">
-                        <div class="dash-booking-date">📅 ${fmtDt(b.start_at)} 〜 ${fmtTime(b.end_at)}</div>
-                        <div class="dash-booking-info">👤 ${esc(b.customer_name)} 様　<span style="color:#888;font-size:0.78rem">${esc(b.step_type)}</span></div>
-                        <div><span class="dash-booking-status ${statusCls}">${statusLabel}</span></div>
-                    </div>`;
-                }
-                el('diagBookingsList').innerHTML = h;
+                _saveCache(CACHE_KEY, res.bookings || []);
+                _renderDiagDash(res.bookings || []);
             });
+        }
+
+        function _renderDiagDash(allBookings) {
+            const myBookings = allBookings.filter(b => b.diag_id === STATE.diag_id && b.status !== 'CANCELED');
+            const now = new Date();
+            const todayStr = fmtDate(now);
+            const weekEnd = new Date(now);
+            weekEnd.setDate(now.getDate() + (7 - now.getDay()));
+            const weekEndStr = fmtDate(weekEnd);
+
+            let todayCount = 0, weekCount = 0;
+            myBookings.forEach(b => {
+                const bDate = b.start_at ? b.start_at.substring(0, 10) : '';
+                if (bDate === todayStr) todayCount++;
+                if (bDate >= todayStr && bDate <= weekEndStr) weekCount++;
+            });
+
+            el('dashToday').textContent = todayCount;
+            el('dashWeek').textContent = weekCount;
+            el('dashTotal').textContent = myBookings.length;
+
+            const sorted = myBookings.sort((a, b) => (a.start_at || '').localeCompare(b.start_at || ''));
+
+            if (sorted.length === 0) {
+                el('diagBookingsList').innerHTML = '<div class="msg-info">予約がありません</div>';
+                return;
+            }
+
+            const parts = [];
+            for (const b of sorted) {
+                const statusCls = (b.status === 'CONFIRMED') ? 'confirmed' : (b.status === 'CHANGED') ? 'changed' : 'canceled';
+                const statusLabel = (b.status === 'CONFIRMED') ? '✅ 確定' : (b.status === 'CHANGED') ? '🔄 変更済' : '❌ キャンセル';
+                parts.push(`<div class="dash-booking">
+                    <div class="dash-booking-date">📅 ${fmtDt(b.start_at)} 〜 ${fmtTime(b.end_at)}</div>
+                    <div class="dash-booking-info">👤 ${esc(b.customer_name)} 様　<span style="color:#888;font-size:0.78rem">${esc(b.step_type)}</span></div>
+                    <div><span class="dash-booking-status ${statusCls}">${statusLabel}</span></div>
+                </div>`);
+            }
+            el('diagBookingsList').innerHTML = parts.join('');
+        }
+
+        // SWRキャッシュユーティリティ（TTL: 5分）
+        const _CACHE_TTL = 5 * 60 * 1000;
+        function _saveCache(key, data) {
+            try { localStorage.setItem(key, JSON.stringify({ t: Date.now(), d: data })); } catch (e) { }
+        }
+        function _loadCache(key) {
+            try {
+                const raw = localStorage.getItem(key);
+                if (!raw) return null;
+                const obj = JSON.parse(raw);
+                // TTL内（5分）ならキャッシュを使用
+                if (Date.now() - obj.t < _CACHE_TTL) return obj.d;
+                localStorage.removeItem(key);
+            } catch (e) { }
+            return null;
         }
 
         function doCreateAvail() {
@@ -3531,39 +3571,41 @@
         }
 
         function doListAvail() {
-            el('availList').innerHTML = '<div class="loading-text" style="text-align:center;padding:16px"><div class="spinner" style="margin:0 auto 8px"></div>読込中...</div>';
+            const CACHE_KEY = 'mytone_avail_cache_' + STATE.diag_id;
 
-            callApi('apiDiagListAvail', {
-                line_user_id: STATE.line_user_id
+            // SWR: キャッシュがあれば即座に表示（待ち時間ゼロ体験）
+            const cached = _loadCache(CACHE_KEY);
+            if (cached) {
+                _renderAvailList(cached);
+                const listEl = el('availList');
+                if (listEl) listEl.insertAdjacentHTML('afterbegin', '<div style="font-size:0.75rem;color:#888;text-align:center;padding:4px 0">🔄 最新情報を取得中...</div>');
+            } else {
+                el('availList').innerHTML = '<div class="loading-text" style="text-align:center;padding:16px"><div class="spinner" style="margin:0 auto 8px"></div>読込中...</div>';
             }
 
-                , (res) => {
-                    if (!res.ok) {
-                        el('availList').innerHTML = '<div class="msg-error">' + esc(res.error) + '</div>'; return;
-                    }
+            // バックグラウンドで最新データを取得
+            callApi('apiDiagListAvail', { line_user_id: STATE.line_user_id }, (res) => {
+                if (!res.ok) {
+                    if (!cached) el('availList').innerHTML = '<div class="msg-error">' + esc(res.error) + '</div>';
+                    else showToast('更新失敗: ' + res.error, true);
+                    return;
+                }
+                _saveCache(CACHE_KEY, res.avail);
+                _renderAvailList(res.avail);
+            });
+        }
 
-                    // 稼働枠カレンダーを更新
-                    renderAvailCalendar(res.avail);
-
-                    if (res.avail.length === 0) {
-                        el('availList').innerHTML = '<div class="msg-info">稼働枠がありません</div>';
-                        return;
-                    }
-
-                    let h = '';
-
-                    for (const a of res.avail) {
-                        h += `<div class="avail-item" > <div class="avail-time" >📅 ${fmtDt(a.start_at)
-                            }
-
-                    〜 ${fmtTime(a.end_at)
-                            }
-
-                    </div> <button class="btn btn-danger btn-small" onclick="doDeleteAvail('${esc(a.event_id)}')" >削除</button> </div>`;
-                    }
-
-                    el('availList').innerHTML = h;
-                });
+        function _renderAvailList(avail) {
+            renderAvailCalendar(avail);
+            if (avail.length === 0) {
+                el('availList').innerHTML = '<div class="msg-info">稼働枠がありません</div>';
+                return;
+            }
+            const parts = [];
+            for (const a of avail) {
+                parts.push(`<div class="avail-item"><div class="avail-time">📅 ${fmtDt(a.start_at)} 〜 ${fmtTime(a.end_at)}</div><button class="btn btn-danger btn-small" onclick="doDeleteAvail('${esc(a.event_id)}')">削除</button></div>`);
+            }
+            el('availList').innerHTML = parts.join('');
         }
 
         function doDeleteAvail(eventId) {
