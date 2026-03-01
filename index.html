@@ -3179,13 +3179,23 @@
 
 
 
-        /* ========== \u9031\u9593\u30ab\u30ec\u30f3\u30c0\u30fc\u30d3\u30e5\u30fc ========== */
+        /* ========== 週間カレンダービュー ========== */
+        // デバウンス用タイマーとAPIキャッシュ
+        let _weekCalTimer = null;
+        let _weekAvailCache = {}; // キー: base_date, 値: resデータ
+
         function renderWeekCal() {
+            // 連続呼び出し時は200ms待って最後の1回だけ実行
+            clearTimeout(_weekCalTimer);
+            _weekCalTimer = setTimeout(_doRenderWeekCal, 200);
+        }
+
+        function _doRenderWeekCal() {
             const calEl = el('weekCalArea');
             if (!calEl) return;
             const today = new Date();
             const todayStr = fmtDate(today);
-            const DOW = ['\u65e5', '\u6708', '\u706b', '\u6c34', '\u6728', '\u91d1', '\u571f'];
+            const DOW = ['日', '月', '火', '水', '木', '金', '土'];
             const curVal = el('searchDate') ? el('searchDate').value : '';
 
             // 基準日を中心に前3日〜後3日の7日間を表示
@@ -3195,14 +3205,13 @@
             } else {
                 baseDate = new Date(today);
             }
+            const baseDateStr = fmtDate(baseDate);
 
             let h = '';
-            const weekDates = [];
             for (let i = -3; i <= 3; i++) {
                 const d = new Date(baseDate);
                 d.setDate(baseDate.getDate() + i);
                 const ymd = fmtDate(d);
-                weekDates.push(ymd);
                 const isSel = curVal === ymd;
                 const isToday = ymd === todayStr;
 
@@ -3215,33 +3224,41 @@
 
             calEl.innerHTML = h;
 
-            // 稼働情報を非同期で取得してマークを更新
+            // キャッシュがあればそのまま使用（同じ基準日なら再取得しない）
             if (STATE.line_user_id && STATE.role === 'staff') {
-                callApi('apiWeekAvailSummary', {
-                    line_user_id: STATE.line_user_id,
-                    base_date: fmtDate(baseDate)
-                }, function (res) {
-                    if (!res.ok || !res.days) return;
-                    res.days.forEach(function (day) {
-                        const slotEl = document.getElementById('wdSlot_' + day.date);
-                        if (!slotEl) return;
-                        if (day.has_avail) {
-                            let markHtml = '<div class="wd-avail-mark">○</div>';
-                            if (day.summary) {
-                                // 「〜」を改行に置換して上下2段表示にする
-                                const summaryHtml = esc(day.summary).replace(/〜/g, '<br>');
-                                markHtml += '<div class="wd-avail-time">' + summaryHtml + '</div>';
-                            }
-                            slotEl.innerHTML = markHtml;
-                        } else {
-                            slotEl.innerHTML = '<div style="font-size:0.6rem;color:#ccc">—</div>';
-                        }
+                if (_weekAvailCache[baseDateStr]) {
+                    _applyWeekAvail(_weekAvailCache[baseDateStr]);
+                } else {
+                    callApi('apiWeekAvailSummary', {
+                        line_user_id: STATE.line_user_id,
+                        base_date: baseDateStr
+                    }, function (res) {
+                        if (!res.ok || !res.days) return;
+                        _weekAvailCache[baseDateStr] = res;
+                        _applyWeekAvail(res);
                     });
-                });
+                }
             }
         }
 
-        /* ========== \u8a3a\u65ad\u58eb\u30ea\u30b9\u30c8\u8aad\u8fbc ========== */
+        function _applyWeekAvail(res) {
+            res.days.forEach(function (day) {
+                const slotEl = document.getElementById('wdSlot_' + day.date);
+                if (!slotEl) return;
+                if (day.has_avail) {
+                    let markHtml = '<div class="wd-avail-mark">○</div>';
+                    if (day.summary) {
+                        const summaryHtml = esc(day.summary).replace(/〜/g, '<br>');
+                        markHtml += '<div class="wd-avail-time">' + summaryHtml + '</div>';
+                    }
+                    slotEl.innerHTML = markHtml;
+                } else {
+                    slotEl.innerHTML = '<div style="font-size:0.6rem;color:#ccc">—</div>';
+                }
+            });
+        }
+
+        /* ========== 診断士リスト読込 ========== */
         function loadDiagList() {
             const sel = el('diagFilter');
             if (!sel) return;
@@ -3252,14 +3269,12 @@
 
                 , (res) => {
                     if (!res.ok || !res.diags) return;
-                    sel.innerHTML = '<option value="">\u25cb \u6307\u5b9a\u306a\u3057\uff08\u5168\u54e1\u5bfe\u8c61\uff09</option>';
-
+                    // innerHTML+= を配列join化（DOM再解析を廃止）
+                    const opts = ['<option value="">\u25cb \u6307\u5b9a\u306a\u3057\uff08\u5168\u54e1\u5bfe\u8c61\uff09</option>'];
                     res.diags.forEach(d => {
-                        sel.innerHTML += `<option value="${esc(d.diag_id)}" >${esc(d.diag_name)
-                            }
-
-                        </option>`;
+                        opts.push(`<option value="${esc(d.diag_id)}">${esc(d.diag_name)}</option>`);
                     });
+                    sel.innerHTML = opts.join('');
                 });
         }
 
@@ -3388,14 +3403,15 @@
         /* ========== 診断士UI ========== */
         function initDiagUI() {
             const sel = el('availTime');
-            sel.innerHTML = '';
-
+            // innerHTML+= を配列join化（毎ループのDOM再解析を廃止）
+            const opts = [];
             for (let h = 7; h <= 21; h++) {
                 for (const m of ['00', '30']) {
                     const v = String(h).padStart(2, '0') + ':' + m;
-                    sel.innerHTML += '<option value="' + v + '">' + v + '</option>';
+                    opts.push('<option value="' + v + '">' + v + '</option>');
                 }
             }
+            sel.innerHTML = opts.join('');
 
             const tomorrow = new Date();
             tomorrow.setDate(tomorrow.getDate() + 1);
@@ -3641,11 +3657,15 @@
             const e = el(id); if (e) e.classList.add('hidden');
         }
 
+        // esc(): DOMを使わない純粋な文字列置換（高速化）
         function esc(s) {
             if (s == null) return '';
-            const d = document.createElement('div');
-            d.textContent = String(s);
-            return d.innerHTML;
+            return String(s)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
         }
 
         function fmtDate(d) {
