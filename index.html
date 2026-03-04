@@ -2739,9 +2739,30 @@
                 return;
             }
 
-            showSkeleton('slotsArea', 3);
             hide('btnFallback');
             const diagFilter = el('diagFilter') ? el('diagFilter').value : '';
+
+            // SWRキャッシュキー（検索条件の組み合わせ）
+            const CACHE_KEY = 'mytone_slots_' + STATE.step_type + '_' + ymd + '_' + (diagFilter || 'all');
+
+            // SWR: キャッシュがあれば即座に表示（待ち時間ゼロ体験）
+            const cached = _loadCache(CACHE_KEY);
+            if (cached && cached.results) {
+                if (cached.mode === 'no_preferred_slot') {
+                    el('slotsArea').innerHTML = '<div class="msg-warn">同一診断士の空きがありません</div>';
+                    show('btnFallback');
+                } else {
+                    renderSlots(cached.results, 'slotsArea');
+                    if (cached.results.length === 0) {
+                        el('slotsArea').innerHTML = '<div class="msg-warn">空きがありません。別の日付をお試しください。</div>';
+                    }
+                }
+                // 更新中バッジを挿入
+                const area = el('slotsArea');
+                if (area) area.insertAdjacentHTML('afterbegin', '<div style="font-size:0.75rem;color:#888;text-align:center;padding:4px 0">🔄 最新情報を取得中...</div>');
+            } else {
+                showSkeleton('slotsArea', 3);
+            }
 
             const payload = {
                 line_user_id: STATE.line_user_id,
@@ -2754,10 +2775,16 @@
 
                 ;
 
+            // バックグラウンドで最新データを取得
             callApi('apiSearchSlots', payload, (res) => {
                 if (!res.ok) {
-                    el('slotsArea').innerHTML = '<div class="msg-error">' + esc(res.error) + '</div>'; return;
+                    if (!cached) el('slotsArea').innerHTML = '<div class="msg-error">' + esc(res.error) + '</div>';
+                    else showToast('更新失敗: ' + res.error, true);
+                    return;
                 }
+
+                // キャッシュに保存（TTL: 3分 — スロットはリアルタイム性重要なため短め）
+                _saveCache(CACHE_KEY, res);
 
                 if (res.mode === 'no_preferred_slot') {
                     el('slotsArea').innerHTML = '<div class="msg-warn">同一診断士の空きがありません</div>';
