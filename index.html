@@ -974,6 +974,97 @@
 
 
 
+        /* ========== プログレスローディング ========== */
+        .loading-progress {
+            text-align: center;
+            padding: 20px 16px;
+        }
+
+        .loading-progress .lp-icon {
+            font-size: 1.5rem;
+            margin-bottom: 8px;
+            animation: lp-pulse 1.5s ease-in-out infinite;
+        }
+
+        @keyframes lp-pulse {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.4;
+            }
+        }
+
+        .loading-progress .lp-message {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #3d6b5a;
+            margin-bottom: 12px;
+        }
+
+        .loading-progress .lp-bar-wrap {
+            width: 100%;
+            height: 6px;
+            background: rgba(91, 168, 140, 0.12);
+            border-radius: 3px;
+            overflow: hidden;
+            margin-bottom: 8px;
+        }
+
+        .loading-progress .lp-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #5ba88c, #6dbfa3, #e8cc6b);
+            background-size: 200% 100%;
+            border-radius: 3px;
+            width: 0%;
+            transition: width 0.3s linear;
+            animation: lp-gradient 2s linear infinite;
+        }
+
+        @keyframes lp-gradient {
+            0% {
+                background-position: 0% 50%;
+            }
+
+            100% {
+                background-position: 200% 50%;
+            }
+        }
+
+        .loading-progress .lp-sub {
+            font-size: 0.75rem;
+            color: #999;
+        }
+
+        .loading-progress .lp-elapsed {
+            font-size: 0.72rem;
+            color: #aaa;
+            margin-top: 4px;
+        }
+
+        /* ボタン無効化 */
+        .btn.btn-loading {
+            opacity: 0.55;
+            pointer-events: none;
+            position: relative;
+        }
+
+        .btn.btn-loading::before {
+            content: '';
+            display: inline-block;
+            width: 14px;
+            height: 14px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-top-color: #fff;
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+            margin-right: 6px;
+            vertical-align: middle;
+        }
+
         /* ========== 診断士フィルター ========== */
         .diag-filter-label {
             font-size: 0.8rem;
@@ -1756,6 +1847,22 @@
             background: linear-gradient(90deg, #2c2c2c 25%, #383838 50%, #2c2c2c 75%);
             background-size: 400px 100%;
             animation: shimmer 1.4s infinite linear;
+        }
+
+        body.dark .loading-progress .lp-message {
+            color: #8ec5b0;
+        }
+
+        body.dark .loading-progress .lp-bar-wrap {
+            background: rgba(91, 168, 140, 0.2);
+        }
+
+        body.dark .loading-progress .lp-sub {
+            color: #777;
+        }
+
+        body.dark .loading-progress .lp-elapsed {
+            color: #666;
         }
 
         body.dark .bottom-sheet {
@@ -2761,8 +2868,12 @@
                 const area = el('slotsArea');
                 if (area) area.insertAdjacentHTML('afterbegin', '<div style="font-size:0.75rem;color:#888;text-align:center;padding:4px 0">🔄 最新情報を取得中...</div>');
             } else {
-                showSkeleton('slotsArea', 3);
+                showLoadingProgress('slotsArea', { message: '空き枠を検索中...', estimateSec: 4, icon: '🔍' });
             }
+
+            // ボタン多重押し防止
+            const searchBtn = document.querySelector('#dateSearch .btn-primary');
+            disableBtn(searchBtn, '検索中...');
 
             const payload = {
                 line_user_id: STATE.line_user_id,
@@ -2780,6 +2891,7 @@
                 if (!res.ok) {
                     if (!cached) el('slotsArea').innerHTML = '<div class="msg-error">' + esc(res.error) + '</div>';
                     else showToast('更新失敗: ' + res.error, true);
+                    enableBtn(document.querySelector('#dateSearch .btn-primary'));
                     return;
                 }
 
@@ -2789,6 +2901,7 @@
                 if (res.mode === 'no_preferred_slot') {
                     el('slotsArea').innerHTML = '<div class="msg-warn">同一診断士の空きがありません</div>';
                     show('btnFallback');
+                    enableBtn(document.querySelector('#dateSearch .btn-primary'));
                     return;
                 }
 
@@ -2797,13 +2910,16 @@
                 if (res.results.length === 0) {
                     el('slotsArea').innerHTML = '<div class="msg-warn">空きがありません。別の日付をお試しください。</div>';
                 }
+                enableBtn(document.querySelector('#dateSearch .btn-primary'));
             });
         }
 
         function doSearchFallback() {
             const ymd = el('searchDate').value;
-            el('slotsArea').innerHTML = '<div class="loading-text" style="text-align:center;padding:16px"><div class="spinner" style="margin:0 auto 8px"></div>検索中...</div>';
+            showLoadingProgress('slotsArea', { message: '別の診断士を検索中...', estimateSec: 4, icon: '🔍' });
             hide('btnFallback');
+            const fbBtn = el('btnFallback');
+            if (fbBtn) disableBtn(fbBtn, '検索中...');
 
             const payload = {
                 line_user_id: STATE.line_user_id,
@@ -2825,6 +2941,7 @@
                 if (res.results.length === 0) {
                     el('slotsArea').innerHTML = '<div class="msg-warn">空きがありません。</div>';
                 }
+                enableBtn(el('btnFallback'));
             });
         }
 
@@ -2964,7 +3081,7 @@
         function doListBookings() {
             const phone = el('listPhone').value.trim();
             const nameQ = el('listName') ? el('listName').value.trim() : '';
-            showSkeleton('bookingsList', 3);
+            showLoadingProgress('bookingsList', { message: '予約一覧を取得中...', estimateSec: 3, icon: '📋' });
 
             callApi('apiListBookings', {
                 line_user_id: STATE.line_user_id, q_phone: phone, q_name: nameQ
@@ -3025,7 +3142,7 @@
                 return;
             }
 
-            el('changeSlotsArea').innerHTML = '<div class="loading-text" style="text-align:center;padding:16px"><div class="spinner" style="margin:0 auto 8px"></div>検索中...</div>';
+            showLoadingProgress('changeSlotsArea', { message: '変更先の空き枠を検索中...', estimateSec: 4, icon: '🔄' });
             hide('btnConfirmChange');
 
             callApi('apiSearchSlotsForChange', {
@@ -3218,6 +3335,113 @@
             el(targetId).innerHTML = h;
         }
 
+        /* ========== プログレスローディング ========== */
+        // アクティブなプログレスタイマーを管理
+        const _progressTimers = {};
+
+        /**
+         * プログレスバー付きローディングを表示
+         * @param {string} targetId - 表示先のDOM要素ID
+         * @param {object} opts - { message: 表示テキスト, estimateSec: 推定秒数, icon: アイコン }
+         * @returns {string} タイマーID（stopLoadingProgressで使用）
+         */
+        function showLoadingProgress(targetId, opts) {
+            opts = opts || {};
+            const message = opts.message || '読み込み中...';
+            const estimateSec = opts.estimateSec || 4;
+            const icon = opts.icon || '🔍';
+            const timerId = 'lp_' + targetId + '_' + Date.now();
+
+            const html = `<div class="loading-progress" id="${timerId}">
+                <div class="lp-icon">${icon}</div>
+                <div class="lp-message">${esc(message)}</div>
+                <div class="lp-bar-wrap"><div class="lp-bar" id="${timerId}_bar"></div></div>
+                <div class="lp-sub">通常 約${estimateSec}秒で完了します</div>
+                <div class="lp-elapsed" id="${timerId}_elapsed"></div>
+            </div>`;
+
+            el(targetId).innerHTML = html;
+
+            // プログレスバーアニメーション開始
+            const startTime = Date.now();
+            let phaseReached = 0; // 0=通常, 1=遅延, 2=タイムアウト
+
+            const intervalId = setInterval(() => {
+                const elapsedSec = (Date.now() - startTime) / 1000;
+                const barEl = document.getElementById(timerId + '_bar');
+                const elapsedEl = document.getElementById(timerId + '_elapsed');
+                const msgEl = document.getElementById(timerId);
+
+                if (!barEl || !msgEl) {
+                    clearInterval(intervalId);
+                    delete _progressTimers[timerId];
+                    return;
+                }
+
+                // プログレスバー: 推定時間で90%に到達、最大95%
+                const progress = Math.min(95, (elapsedSec / estimateSec) * 90);
+                barEl.style.width = progress + '%';
+
+                // 経過表示
+                if (elapsedEl) {
+                    elapsedEl.textContent = Math.floor(elapsedSec) + '秒経過';
+                }
+
+                // 5秒超: メッセージ変更
+                if (elapsedSec > 5 && phaseReached < 1) {
+                    phaseReached = 1;
+                    const lpMsg = msgEl.querySelector('.lp-message');
+                    if (lpMsg) lpMsg.textContent = '少々お待ちください…';
+                    const lpSub = msgEl.querySelector('.lp-sub');
+                    if (lpSub) lpSub.textContent = 'サーバーと通信しています';
+                }
+
+                // 15秒超: タイムアウト表示
+                if (elapsedSec > 15 && phaseReached < 2) {
+                    phaseReached = 2;
+                    clearInterval(intervalId);
+                    delete _progressTimers[timerId];
+                    el(targetId).innerHTML = `<div class="msg-warn" style="text-align:center">
+                        <div style="font-size:1.2rem;margin-bottom:6px">⏱️</div>
+                        <div style="font-weight:600;margin-bottom:4px">応答に時間がかかっています</div>
+                        <div style="font-size:0.8rem;color:#888">ネットワーク状況をご確認ください</div>
+                    </div>`;
+                }
+            }, 300);
+
+            _progressTimers[timerId] = intervalId;
+            return timerId;
+        }
+
+        /**
+         * プログレスローディングを停止（API完了時に呼ぶ）
+         */
+        function stopLoadingProgress(timerId) {
+            if (timerId && _progressTimers[timerId]) {
+                clearInterval(_progressTimers[timerId]);
+                delete _progressTimers[timerId];
+            }
+        }
+
+        /**
+         * ボタンをローディング状態にする
+         */
+        function disableBtn(btnEl, loadingText) {
+            if (!btnEl) return;
+            btnEl._origText = btnEl.textContent;
+            btnEl.classList.add('btn-loading');
+            if (loadingText) btnEl.textContent = loadingText;
+        }
+
+        /**
+         * ボタンのローディング状態を解除する
+         */
+        function enableBtn(btnEl) {
+            if (!btnEl) return;
+            btnEl.classList.remove('btn-loading');
+            if (btnEl._origText) btnEl.textContent = btnEl._origText;
+        }
+
 
 
         /* ========== 週間カレンダービュー ========== */
@@ -3350,7 +3574,7 @@
                 return;
             }
 
-            el('historyContent').innerHTML = '<div class="loading-text" style="text-align:center;padding:20px"><div class="spinner" style="margin:0 auto 8px"></div>\u8aad\u8fbc\u4e2d...</div>';
+            showLoadingProgress('historyContent', { message: '過去の予約を取得中...', estimateSec: 3, icon: '📞' });
             openHistorySheet();
 
             callApi('apiGetCustomerHistory', {
@@ -3485,11 +3709,10 @@
             const cached = _loadCache(CACHE_KEY);
             if (cached) {
                 _renderDiagDash(cached);
-                // 差替えバッジをリスト先頭に挿入
                 const listEl = el('diagBookingsList');
                 if (listEl) listEl.insertAdjacentHTML('afterbegin', '<div id="dashRefreshBadge" style="font-size:0.75rem;color:#888;text-align:center;padding:4px 0">🔄 最新情報を取得中...</div>');
             } else {
-                el('diagBookingsList').innerHTML = '<div class="loading-text" style="text-align:center;padding:16px"><div class="spinner" style="margin:0 auto 8px"></div>読込中...</div>';
+                showLoadingProgress('diagBookingsList', { message: '予約情報を取得中...', estimateSec: 3, icon: '📅' });
             }
 
             callApi('apiListBookings', { line_user_id: STATE.line_user_id, q_phone: '', q_name: '' }, (res) => {
@@ -3607,7 +3830,7 @@
                 const listEl = el('availList');
                 if (listEl) listEl.insertAdjacentHTML('afterbegin', '<div style="font-size:0.75rem;color:#888;text-align:center;padding:4px 0">🔄 最新情報を取得中...</div>');
             } else {
-                el('availList').innerHTML = '<div class="loading-text" style="text-align:center;padding:16px"><div class="spinner" style="margin:0 auto 8px"></div>読込中...</div>';
+                showLoadingProgress('availList', { message: '稼働枠を取得中...', estimateSec: 3, icon: '🗓️' });
             }
 
             // バックグラウンドで最新データを取得
