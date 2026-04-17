@@ -2237,9 +2237,24 @@
     <!--==========診断士画面==========-->
     <div id="screenDiag" class="container hidden">
         <div class="tab-bar" id="diagTabs">
+            <div class="tab" onclick="switchDiagTab('book')">📝 予約を入れる</div>
             <div class="tab active" onclick="switchDiagTab('add')">稼働枠追加</div>
             <div class="tab" onclick="switchDiagTab('list')">稼働枠一覧</div>
             <div class="tab" onclick="switchDiagTab('dash')">📊 ダッシュボード</div>
+        </div>
+        <!-- 診断士用予約入力エリア -->
+        <div id="diagBook" class="hidden">
+            <div class="card">
+                <div class="card-title"><span class="ct-icon">📝</span> 予約を入れる</div>
+                <!-- 担当店舗選択（複数店舗の場合のみ選択肢が出る） -->
+                <div id="diagSalonWrap">
+                    <label>担当店舗</label>
+                    <select id="diagSalonSelect" onchange="STATE.diag_salon_id=this.value"></select>
+                </div>
+                <button class="btn btn-primary" onclick="diagStartNewBooking()" style="margin-top:14px">➕
+                    新規予約を入力する</button>
+                <div class="msg-info" style="margin-top:10px;font-size:0.82rem"><b>STEP1</b>（初回診断）として登録されます。</div>
+            </div>
         </div>
         <div id="diagAdd">
             <div class="card">
@@ -2344,6 +2359,8 @@
             role: '',
             salon_id: '',
             diag_id: '',
+            diag_salons: [],      // 診断士の担当店舗リスト（apiBootstrapから取得）
+            diag_salon_id: '',    // 診断士が予約入力時に選択した店舗ID
             step_type: '',
             parent_booking_id: '',
             preferred_diag_id: '',
@@ -2530,6 +2547,11 @@
 
                     else if (res.role === 'diagnostician') {
                         STATE.diag_id = res.diag_id;
+                        // 担当店舗リストを保存（予約入力機能で使用）
+                        STATE.diag_salons = res.salons || [];
+                        if (STATE.diag_salons.length > 0) {
+                            STATE.diag_salon_id = STATE.diag_salons[0].salon_id;
+                        }
                         setBadge('診断士');
                         show('screenDiag');
                         initDiagUI();
@@ -2882,9 +2904,11 @@
                 parent_booking_id: STATE.parent_booking_id || '',
                 allow_fallback: false,
                 diag_id_filter: diagFilter,
+            };
+            // 診断士ロール時はsalon_idを付加
+            if (STATE.role === 'diagnostician' && STATE.diag_salon_id) {
+                payload.salon_id = STATE.diag_salon_id;
             }
-
-                ;
 
             // バックグラウンドで最新データを取得
             callApi('apiSearchSlots', payload, (res) => {
@@ -3046,9 +3070,11 @@
                 memo: el('custMemo') ? el('custMemo').value.trim() : '',
                 diag_id: STATE.selectedDiagId,
                 start_at_iso: STATE.selectedSlot,
+            };
+            // 診断士ロール時はsalon_idを付加
+            if (STATE.role === 'diagnostician' && STATE.diag_salon_id) {
+                payload.salon_id = STATE.diag_salon_id;
             }
-
-                ;
 
             callApi('apiCreateBooking', payload, (res) => {
                 if (!res.ok) {
@@ -3681,24 +3707,84 @@
             const tomorrow = new Date();
             tomorrow.setDate(tomorrow.getDate() + 1);
             el('availDate').value = fmtDate(tomorrow);
+
+            // 担当店舗セレクトを初期化（診断士が予約入力機能で使用）
+            const salonSel = el('diagSalonSelect');
+            if (salonSel && STATE.diag_salons.length > 0) {
+                const sOpts = STATE.diag_salons.map(s =>
+                    `<option value="${esc(s.salon_id)}">${esc(s.salon_name)}</option>`
+                );
+                salonSel.innerHTML = sOpts.join('');
+                STATE.diag_salon_id = STATE.diag_salons[0].salon_id;
+            }
         }
 
         function switchDiagTab(tab) {
             const tabs = document.querySelectorAll('#diagTabs .tab');
             tabs.forEach(t => t.classList.remove('active'));
 
-            if (tab === 'add') {
+            if (tab === 'book') {
                 tabs[0].classList.add('active');
-                show('diagAdd'); hide('diagList'); hide('diagDash');
-            } else if (tab === 'list') {
+                show('diagBook'); hide('diagAdd'); hide('diagList'); hide('diagDash');
+            } else if (tab === 'add') {
                 tabs[1].classList.add('active');
-                hide('diagAdd'); show('diagList'); hide('diagDash');
+                hide('diagBook'); show('diagAdd'); hide('diagList'); hide('diagDash');
+            } else if (tab === 'list') {
+                tabs[2].classList.add('active');
+                hide('diagBook'); hide('diagAdd'); show('diagList'); hide('diagDash');
                 doListAvail();
             } else if (tab === 'dash') {
-                tabs[2].classList.add('active');
-                hide('diagAdd'); hide('diagList'); show('diagDash');
+                tabs[3].classList.add('active');
+                hide('diagBook'); hide('diagAdd'); hide('diagList'); show('diagDash');
                 loadDiagDashboard();
             }
+        }
+
+        /* ========== 診断士ロール: 新規予約入力 ========== */
+        function diagStartNewBooking() {
+            if (!STATE.diag_salon_id) {
+                showToast('店舗を選択してください', true);
+                return;
+            }
+            // スタッフ用フローの頑客情報入力フォームを再利用
+            // screenStaff正表ではなく、診断士ダッシュボード「予約を入れる」タブ内にスタッフ用フォームを表示
+            // screenStaffを一時的に表示して誤注点を回避するため、封じ込めます
+            STATE.step_type = 'STEP1';
+            STATE.parent_booking_id = '';
+            STATE.preferred_diag_id = '';
+            STATE.customer = {};
+            STATE.selectedSlot = null;
+            STATE.selectedDiagId = '';
+            STATE.selectedDiagName = '';
+            // 氾用の山形では screenStaff の custInfo をそのまま利用
+            // screenDiagを非表示してscreenStaffのcustInfoを表示
+            hide('screenDiag');
+            show('screenStaff');
+            hide('staffNew');
+            hide('staffList');
+            show('custInfo');
+            hide('stepSelect');
+            hide('step2ParentSearch');
+            hide('dateSearch');
+            el('custStepLabel').textContent = '📝 STEP1 初回診断（診断士入力）';
+            el('custName').value = '';
+            el('custPhone').value = '';
+            el('custGender').value = '';
+            el('custAge').value = '';
+            if (el('custMemo')) el('custMemo').value = '';
+            // 戻るボタンの動作を診断士タブに戻るよう上書き
+            const backBtn = document.querySelector('#custInfo .btn-outline');
+            if (backBtn) backBtn.setAttribute('onclick', 'diagCancelBooking()');
+        }
+
+        /* 診断士予約フローを途中でキャンセルし診断士UIに戻る */
+        function diagCancelBooking() {
+            hide('screenStaff');
+            show('screenDiag');
+            switchDiagTab('book');
+            // 戻るボタンの動作を元に戻す
+            const backBtn = document.querySelector('#custInfo .btn-outline');
+            if (backBtn) backBtn.setAttribute('onclick', 'resetNewBooking()');
         }
 
         /* ========== 診断士ダッシュボード ========== */
