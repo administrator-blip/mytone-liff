@@ -2552,6 +2552,9 @@
                         if (STATE.diag_salons.length > 0) {
                             STATE.diag_salon_id = STATE.diag_salons[0].salon_id;
                         }
+                        // デバッグ情報を保存（salonsが空のとき診断画面に表示する）
+                        STATE.bootstrap_debug = res.debug || null;
+                        if (res.debug) console.log('[apiBootstrap.debug]', res.debug);
                         setBadge('診断士');
                         show('screenDiag');
                         initDiagUI();
@@ -3710,12 +3713,46 @@
 
             // 担当店舗セレクトを初期化（診断士が予約入力機能で使用）
             const salonSel = el('diagSalonSelect');
-            if (salonSel && STATE.diag_salons.length > 0) {
-                const sOpts = STATE.diag_salons.map(s =>
-                    `<option value="${esc(s.salon_id)}">${esc(s.salon_name)}</option>`
-                );
-                salonSel.innerHTML = sOpts.join('');
-                STATE.diag_salon_id = STATE.diag_salons[0].salon_id;
+            const salonWrap = el('diagSalonWrap');
+            if (salonSel) {
+                if (STATE.diag_salons.length > 0) {
+                    const sOpts = STATE.diag_salons.map(s =>
+                        `<option value="${esc(s.salon_id)}">${esc(s.salon_name)}</option>`
+                    );
+                    salonSel.innerHTML = sOpts.join('');
+                    STATE.diag_salon_id = STATE.diag_salons[0].salon_id;
+                } else {
+                    // 担当店舗が0件: デバッグ情報を表示
+                    if (salonWrap) {
+                        let dbgHtml = '<div class="msg-warn">担当店舗が見つかりません。下記情報を管理者に共有してください</div>';
+                        if (STATE.bootstrap_debug) {
+                            const d = STATE.bootstrap_debug;
+                            const matchCount = (d.matching_rows || []).length;
+                            dbgHtml += '<div style="font-size:0.78rem;background:#f5f5f5;padding:8px;margin-top:6px;border-radius:6px;font-family:monospace;word-break:break-all">'
+                                + '<b>診断士ID:</b> "' + esc(d.searched_diag_id) + '" (長さ:' + d.searched_diag_id_len + ')<br>'
+                                + '<b>salon_diag 全行数:</b> ' + d.salon_diag_total_rows + '<br>'
+                                + '<b>このIDに一致した行:</b> ' + matchCount + '件<br>';
+                            if (matchCount > 0) {
+                                dbgHtml += '<b>一致行詳細:</b><br>';
+                                for (const m of d.matching_rows) {
+                                    dbgHtml += '&nbsp;&nbsp;salon_id=' + esc(m.salon_id)
+                                        + ', active=' + esc(JSON.stringify(m.active_raw))
+                                        + ' (' + esc(m.active_type) + ')<br>';
+                                }
+                            }
+                            dbgHtml += '<b>salon_diagにある全diag_id:</b><br>'
+                                + (d.all_diag_ids_in_salon_diag || []).map(x => '&nbsp;&nbsp;"' + esc(x) + '"').join('<br>');
+                            dbgHtml += '</div>';
+                        }
+                        salonWrap.innerHTML = dbgHtml;
+                    }
+                    // 予約入力ボタンを無効化
+                    const bookBtn = document.querySelector('#diagBook .btn-primary');
+                    if (bookBtn) {
+                        bookBtn.disabled = true;
+                        bookBtn.textContent = '担当店舗未登録のため利用不可';
+                    }
+                }
             }
         }
 
