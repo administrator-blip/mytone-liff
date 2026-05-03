@@ -2381,6 +2381,11 @@
         const DEFAULT_LIFF_ID = '2009132853-rlGuhhMj';
         const DEFAULT_GAS_URL = 'https://script.google.com/macros/s/AKfycbyJ6RasshdyfQVueQvWu58MIS-ILVXDwxiK-6m4lmCmhV28m_ebOOhwhWLL36yW3JJ-mg/exec';
 
+        // ID Token認証スイッチ（GAS側のLINE_LOGIN_CHANNEL_ID設定確認後にtrueへ）
+        // - false: id_tokenを送信しない（既存のline_user_idベース動作 = 後方互換）
+        // - true:  id_tokenを送信、GAS側で検証してuserIdを上書き（強化）
+        const ENABLE_ID_TOKEN_AUTH = true;
+
         // URLパラメータからの上書きをサポート（ステージング・デバッグ用）
         const _urlParams = new URLSearchParams(location.search);
         const LIFF_ID = _urlParams.get('liff') || DEFAULT_LIFF_ID;
@@ -4061,7 +4066,7 @@
         function callApi(fn, payload, cb) {
             // body に id_token を同梱（GAS側で検証して line_user_id を上書き）
             const body = { action: fn, payload: payload };
-            if (STATE.id_token) body.id_token = STATE.id_token;
+            if (ENABLE_ID_TOKEN_AUTH && STATE.id_token) body.id_token = STATE.id_token;
 
             // GAS doPost へ POST する
             // Content-Type: text/plain でCORSプリフライトを回避
