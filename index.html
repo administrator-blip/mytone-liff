@@ -3793,16 +3793,21 @@
             STATE.selectedSlot = null;
             STATE.selectedDiagId = '';
             STATE.selectedDiagName = '';
-            // 氾用の山形では screenStaff の custInfo をそのまま利用
-            // screenDiagを非表示してscreenStaffのcustInfoを表示
+            // 診断士予約: screenStaff 内の custInfo フォームを再利用する
+            // 注意: custInfo は staffNew の子要素なので staffNew は表示したまま、
+            // 中身（stepSelect / step2 / dateSearch / confirmArea / todaySummary）を全て隠す
             hide('screenDiag');
             show('screenStaff');
-            hide('staffNew');
-            hide('staffList');
-            show('custInfo');
+            hide('staffTabs');     // スタッフ用タブは診断士フローでは混乱の元なので隠す
+            // staffNew は custInfo の親なので表示したまま、兄弟要素のみ隠す
+            hide('todaySummary');
             hide('stepSelect');
             hide('step2ParentSearch');
             hide('dateSearch');
+            hide('confirmArea');
+            hide('staffList');
+            hide('changeArea');
+            show('custInfo');
             el('custStepLabel').textContent = '📝 STEP1 初回診断（診断士入力）';
             el('custName').value = '';
             el('custPhone').value = '';
@@ -3818,6 +3823,10 @@
         function diagCancelBooking() {
             hide('screenStaff');
             show('screenDiag');
+            // 隠していたスタッフ用タブを復元（次回スタッフロールで利用する場合のため）
+            show('staffTabs');
+            hide('custInfo');
+            show('stepSelect');
             switchDiagTab('book');
             // 戻るボタンの動作を元に戻す
             const backBtn = document.querySelector('#custInfo .btn-outline');
