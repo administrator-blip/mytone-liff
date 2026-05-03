@@ -8,6 +8,8 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
+    <!-- ビルド識別子（Service Worker キャッシュとの不一致確認用。デプロイ時に手動更新） -->
+    <meta name="mytone-build" content="2026-05-04-01">
     <title>MYTONE 予約システム</title>
     <link rel="manifest" href="./manifest.json">
     <meta name="theme-color" content="#5ba88c">
@@ -2354,8 +2356,8 @@
 
         /* ========== グローバル状態 ========== */
         const STATE = {
-
             line_user_id: '',
+            id_token: '',         // LIFF ID Token (GAS側で検証してuserIdをspoof対策)
             role: '',
             salon_id: '',
             diag_id: '',
@@ -2364,23 +2366,28 @@
             step_type: '',
             parent_booking_id: '',
             preferred_diag_id: '',
-            customer: {}
-
-            ,
+            customer: {},
             selectedSlot: null,
             selectedDiagId: '',
             selectedDiagName: '',
             changeBookingId: '',
             changeSlot: null,
+        };
+
+        /* ========== 設定: ここだけ変更する ==========
+         * デフォルト値は本番。ステージング等で切り替えたい場合は
+         * URLパラメータ ?liff=XXX&gas=YYY で上書き可能。
+         */
+        const DEFAULT_LIFF_ID = '2009132853-rlGuhhMj';
+        const DEFAULT_GAS_URL = 'https://script.google.com/macros/s/AKfycbyJ6RasshdyfQVueQvWu58MIS-ILVXDwxiK-6m4lmCmhV28m_ebOOhwhWLL36yW3JJ-mg/exec';
+
+        // URLパラメータからの上書きをサポート（ステージング・デバッグ用）
+        const _urlParams = new URLSearchParams(location.search);
+        const LIFF_ID = _urlParams.get('liff') || DEFAULT_LIFF_ID;
+        const GAS_URL = _urlParams.get('gas') || DEFAULT_GAS_URL;
+        if (_urlParams.has('liff') || _urlParams.has('gas')) {
+            console.warn('[mytone] config overridden via URL params');
         }
-
-            ;
-
-        /* ========== 設定: ここだけ変更する ========== */
-        // LINE Developers Console の LIFF ID
-        const LIFF_ID = '2009132853-rlGuhhMj';
-        // GAS デプロイURL（デプロイを管理 → ウェブアプリURL）
-        const GAS_URL = 'https://script.google.com/macros/s/AKfycbyJ6RasshdyfQVueQvWu58MIS-ILVXDwxiK-6m4lmCmhV28m_ebOOhwhWLL36yW3JJ-mg/exec';
 
         // LIFF SDK を複数CDNからフォールバック付きで動的読み込み
         function loadSdk(urls, onSuccess, onFail) {
@@ -2488,6 +2495,15 @@
                 );
                 STATE.line_user_id = profile.userId;
                 console.log('line_user_id:', STATE.line_user_id.substring(0, 6) + '...');
+
+                // LIFF ID Token を取得（GAS側で検証され、認証済みuserIdが利用される）
+                try {
+                    STATE.id_token = liff.getIDToken() || '';
+                    console.log('id_token: ' + (STATE.id_token ? 'obtained' : 'not available'));
+                } catch (idErr) {
+                    console.warn('getIDToken failed:', idErr);
+                    STATE.id_token = '';
+                }
 
                 showStep('サーバーに接続中...');
                 bootstrap();
@@ -3056,7 +3072,7 @@
 
         function doCreateBooking() {
             if (!STATE.selectedSlot) {
-                showToast('枚を選択してください', true);
+                showToast('枠を選択してください', true);
                 return;
             }
 
@@ -3740,8 +3756,11 @@
                                         + ' (' + esc(m.active_type) + ')<br>';
                                 }
                             }
-                            dbgHtml += '<b>salon_diagにある全diag_id:</b><br>'
-                                + (d.all_diag_ids_in_salon_diag || []).map(x => '&nbsp;&nbsp;"' + esc(x) + '"').join('<br>');
+                            dbgHtml += '<b>salon_diag内の登録diag_id総数:</b> ' + (d.unique_diag_id_count_in_salon_diag || 0) + '<br>';
+                            if (d.sample_diag_ids && d.sample_diag_ids.length) {
+                                dbgHtml += '<b>サンプル（先頭3件）:</b><br>'
+                                    + d.sample_diag_ids.map(x => '&nbsp;&nbsp;"' + esc(x) + '"').join('<br>');
+                            }
                             dbgHtml += '</div>';
                         }
                         salonWrap.innerHTML = dbgHtml;
@@ -4040,31 +4059,22 @@
 
         /* ========== API呼び出しユーティリティ (fetch版) ========== */
         function callApi(fn, payload, cb) {
+            // body に id_token を同梱（GAS側で検証して line_user_id を上書き）
+            const body = { action: fn, payload: payload };
+            if (STATE.id_token) body.id_token = STATE.id_token;
 
             // GAS doPost へ POST する
             // Content-Type: text/plain でCORSプリフライトを回避
             fetch(GAS_URL, {
-
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'text/plain;charset=utf-8'
-                }
-
-                ,
-                body: JSON.stringify({
-                    action: fn, payload: payload
-
-                }),
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                body: JSON.stringify(body),
             }).then(function (res) {
                 return res.json();
-
             }).then(function (data) {
                 cb(data);
-
             }).catch(function (err) {
-                cb({
-                    ok: false, error: String(err)
-                });
+                cb({ ok: false, error: String(err) });
             });
         }
 
@@ -4416,8 +4426,29 @@
 
         /* ========== 9. PWA対応 ========== */
         if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('./sw.js').catch(() => { });
+            navigator.serviceWorker.register('./sw.js').catch((err) => { console.warn('SW register failed', err); });
         }
+
+        /* ========== ビルド識別子の表示（キャッシュ不一致確認用） ========== */
+        (function showBuildBadge() {
+            const meta = document.querySelector('meta[name="mytone-build"]');
+            const build = meta ? meta.getAttribute('content') : 'unknown';
+            const badge = document.createElement('div');
+            badge.textContent = 'build: ' + build;
+            Object.assign(badge.style, {
+                position: 'fixed',
+                bottom: '4px',
+                right: '6px',
+                fontSize: '0.62rem',
+                color: 'rgba(0,0,0,0.28)',
+                fontFamily: 'monospace',
+                pointerEvents: 'none',
+                zIndex: '1',
+                userSelect: 'none',
+            });
+            document.body.appendChild(badge);
+            console.log('[mytone] build:', build);
+        })();
 
         /* ========== スプラッシュ画面制御 ========== */
         (function initSplash() {
