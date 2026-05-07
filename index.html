@@ -9,7 +9,7 @@
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
     <!-- ビルド識別子（Service Worker キャッシュとの不一致確認用。デプロイ時に手動更新） -->
-    <meta name="mytone-build" content="2026-05-04-01">
+    <meta name="mytone-build" content="2026-05-04-02-auth">
     <title>MYTONE 予約システム</title>
     <link rel="manifest" href="./manifest.json">
     <meta name="theme-color" content="#5ba88c">
@@ -4434,11 +4434,12 @@
             navigator.serviceWorker.register('./sw.js').catch((err) => { console.warn('SW register failed', err); });
         }
 
-        /* ========== ビルド識別子の表示（キャッシュ不一致確認用） ========== */
+        /* ========== ビルド識別子の表示（キャッシュ不一致＋認証状態確認用） ========== */
         (function showBuildBadge() {
             const meta = document.querySelector('meta[name="mytone-build"]');
             const build = meta ? meta.getAttribute('content') : 'unknown';
             const badge = document.createElement('div');
+            badge.id = 'buildBadge';
             badge.textContent = 'build: ' + build;
             Object.assign(badge.style, {
                 position: 'fixed',
@@ -4453,6 +4454,16 @@
             });
             document.body.appendChild(badge);
             console.log('[mytone] build:', build);
+
+            // id_token 取得状況を1秒ごとに更新（apiBootstrap前後の状態確認用）
+            setInterval(function () {
+                let txt = 'build: ' + build;
+                if (ENABLE_ID_TOKEN_AUTH) {
+                    if (STATE.id_token) txt += ' / id_token: ✓';
+                    else txt += ' / id_token: ✗';
+                }
+                badge.textContent = txt;
+            }, 1000);
         })();
 
         /* ========== スプラッシュ画面制御 ========== */
