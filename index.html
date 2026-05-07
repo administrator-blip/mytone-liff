@@ -9,7 +9,7 @@
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
     <!-- ビルド識別子（Service Worker キャッシュとの不一致確認用。デプロイ時に手動更新） -->
-    <meta name="mytone-build" content="2026-05-04-02-auth">
+    <meta name="mytone-build" content="2026-05-08-02-owner">
     <title>MYTONE 予約システム</title>
     <link rel="manifest" href="./manifest.json">
     <meta name="theme-color" content="#5ba88c">
@@ -1280,6 +1280,55 @@
             outline: none;
         }
 
+        /* ========== 経由元（料金タイプ判別）ラジオピル ========== */
+        .referral-source {
+            display: flex;
+            gap: 6px;
+            margin-top: 4px;
+            flex-wrap: wrap;
+        }
+
+        .radio-pill {
+            flex: 1 1 auto;
+            min-width: 90px;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .radio-pill input[type="radio"] {
+            position: absolute;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .radio-pill .pill-body {
+            display: block;
+            text-align: center;
+            padding: 10px 8px;
+            border: 1.5px solid #ddd;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.7);
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #666;
+            transition: all 0.15s;
+        }
+
+        .radio-pill input[type="radio"]:checked + .pill-body {
+            background: linear-gradient(135deg, #2d5a4a 0%, #5ba88c 100%);
+            border-color: #2d5a4a;
+            color: #fff;
+            box-shadow: 0 2px 8px rgba(91, 168, 140, 0.3);
+        }
+
+        .radio-pill .pill-body .pill-sub {
+            display: block;
+            font-size: 0.65rem;
+            font-weight: 500;
+            margin-top: 2px;
+            opacity: 0.75;
+        }
+
         .bi-memo {
             font-size: 0.78rem;
             color: #888;
@@ -2148,7 +2197,26 @@
                     <option>その他</option>
                 </select><label>年齢</label><input id="custAge" type="number" placeholder="30" min="0"
                     max="120"><label>メモ（任意）</label><textarea id="custMemo" class="memo-area"
-                    placeholder="例: カラー希望、前回の相談内容など"></textarea><button class="btn btn-primary"
+                    placeholder="例: カラー希望、前回の相談内容など"></textarea>
+                <!-- 経由元（料金タイプ判別用・スタッフロール時のみ表示） -->
+                <div id="referralWrap" style="margin-top:14px">
+                    <label style="margin-top:0">経由元 <span style="color:#999;font-weight:400;font-size:0.78rem">（料金区分判別）</span></label>
+                    <div class="referral-source">
+                        <label class="radio-pill">
+                            <input type="radio" name="referral_source" value="" checked>
+                            <span class="pill-body">通常<span class="pill-sub">¥11,000</span></span>
+                        </label>
+                        <label class="radio-pill">
+                            <input type="radio" name="referral_source" value="hotpepper">
+                            <span class="pill-body">ホットペッパー<span class="pill-sub">¥11,500</span></span>
+                        </label>
+                        <label class="radio-pill">
+                            <input type="radio" name="referral_source" value="mytone_hq">
+                            <span class="pill-body">マイトーン経由<span class="pill-sub">¥11,500</span></span>
+                        </label>
+                    </div>
+                </div>
+                <button class="btn btn-primary"
                     onclick="goToDateInput()" style="margin-top:14px">次へ: 日にち選択 →</button><button
                     class="btn btn-outline" onclick="resetNewBooking()" style="margin-top:8px">← 戻る</button><button
                     class="btn btn-secondary" onclick="doViewHistory()" style="margin-top:8px;font-size:0.82rem">📞
@@ -2510,6 +2578,14 @@
                     STATE.id_token = '';
                 }
 
+                // owner_token URL パラメータがあればオーナー登録を先に処理
+                const ownerToken = _urlParams.get('owner_token');
+                if (ownerToken) {
+                    showStep('オーナー登録処理中...');
+                    handleOwnerRegistration(ownerToken);
+                    return; // 完了画面後に bootstrap() が呼ばれる
+                }
+
                 showStep('サーバーに接続中...');
                 bootstrap();
             }
@@ -2518,6 +2594,56 @@
                 console.error('LIFF init error:', e);
                 showStep('⚠️ 初期化エラー: ' + (e.message || String(e)), true);
             }
+        }
+
+        /* ========== オーナー登録（token URL経由） ========== */
+        function handleOwnerRegistration(ownerToken) {
+            // 認証済みのuserIdとtokenをGASに送って owner_line_user_id 更新
+            callApi('apiLinkOwner', {
+                line_user_id: STATE.line_user_id,
+                owner_token: ownerToken,
+            }, (res) => {
+                if (!res.ok) {
+                    el('screenLoading').innerHTML = `
+                        <div class="container">
+                            <div class="msg-error" style="margin-top:40px;text-align:center;padding:20px">
+                                <div style="font-size:2rem;margin-bottom:8px">⚠️</div>
+                                <div style="font-weight:700;margin-bottom:8px">オーナー登録に失敗しました</div>
+                                <div style="font-size:0.85rem;color:#666">${esc(res.error || 'unknown error')}</div>
+                                <button class="btn btn-outline" onclick="location.search=''" style="margin-top:14px">通常画面へ</button>
+                            </div>
+                        </div>`;
+                    return;
+                }
+
+                // 成功画面
+                el('screenLoading').innerHTML = `
+                    <div class="container">
+                        <div style="text-align:center;padding:40px 20px">
+                            <div style="font-size:4rem;margin-bottom:16px">✅</div>
+                            <div style="font-size:1.2rem;font-weight:700;color:#2d5a4a;margin-bottom:8px">オーナー登録 完了</div>
+                            <div style="font-size:0.95rem;color:#666;margin-bottom:6px">
+                                <strong>${esc(res.salon_name)}</strong> のオーナーとして
+                            </div>
+                            <div style="font-size:0.95rem;color:#666;margin-bottom:24px">
+                                登録されました
+                            </div>
+                            <div style="font-size:0.78rem;color:#999;margin-bottom:24px">
+                                これ以降、この店舗の請求書は<br>あなたのLINEにお届けします
+                            </div>
+                            <button class="btn btn-primary" onclick="location.search=''">続けて画面を開く</button>
+                        </div>
+                    </div>`;
+
+                // 3秒後に自動でクエリ消去 → 通常フローへ
+                setTimeout(() => {
+                    if (location.search.indexOf('owner_token') !== -1) {
+                        // クエリパラメータを除去してリロード（owner_token除去）
+                        const url = location.protocol + '//' + location.host + location.pathname;
+                        location.replace(url);
+                    }
+                }, 4000);
+            });
         }
 
         /* ========== Bootstrap ========== */
@@ -2786,6 +2912,8 @@
             STATE.preferred_diag_id = '';
             hide('stepSelect');
             show('custInfo');
+            // スタッフロール時は経由元ラジオを表示（料金タイプ判別用）
+            if (STATE.role === 'staff') show('referralWrap');
             el('custStepLabel').textContent = step === 'STEP1' ? '📋 STEP1 初回診断' : '🔄 STEP2 フォロー診断';
             el('custName').value = '';
             el('custPhone').value = '';
@@ -2793,6 +2921,9 @@
             el('custAge').value = '';
             // メモ欄もリセット
             if (el('custMemo')) el('custMemo').value = '';
+            // 経由元を「通常」にリセット
+            const normalRadio = document.querySelector('input[name="referral_source"][value=""]');
+            if (normalRadio) normalRadio.checked = true;
         }
 
         function startStep2Search() {
@@ -2856,6 +2987,8 @@
             STATE.preferred_diag_id = diagId;
             hide('step2ParentSearch');
             show('custInfo');
+            // スタッフロール時は経由元ラジオを表示（料金タイプ判別用）
+            if (STATE.role === 'staff') show('referralWrap');
             el('custStepLabel').textContent = '🔄 STEP2 フォロー診断（同一診断士優先）';
             el('custName').value = custName;
             el('custPhone').value = custPhone;
@@ -3083,6 +3216,17 @@
 
             el('sheetConfirmMsg').innerHTML = '<div class="loading-text" style="text-align:center;padding:10px">予約作成中...</div>';
 
+            // 経由元（料金タイプ判別用）
+            // - スタッフ予約: ラジオで選択（'' / 'hotpepper' / 'mytone_hq'）
+            // - 診断士予約: 自動で 'diag_self_acquire'（モデル診断扱い）
+            let referralSource = '';
+            if (STATE.role === 'staff') {
+                const checked = document.querySelector('input[name="referral_source"]:checked');
+                referralSource = checked ? checked.value : '';
+            } else if (STATE.role === 'diagnostician') {
+                referralSource = 'diag_self_acquire';
+            }
+
             const payload = {
                 line_user_id: STATE.line_user_id,
                 step_type: STATE.step_type,
@@ -3094,6 +3238,7 @@
                 memo: el('custMemo') ? el('custMemo').value.trim() : '',
                 diag_id: STATE.selectedDiagId,
                 start_at_iso: STATE.selectedSlot,
+                referral_source: referralSource,
             };
             // 診断士ロール時はsalon_idを付加
             if (STATE.role === 'diagnostician' && STATE.diag_salon_id) {
@@ -3832,6 +3977,9 @@
             hide('staffList');
             hide('changeArea');
             show('custInfo');
+            // 診断士ロールの予約は自動的に MODEL（モデル診断）扱いとなるため、
+            // 経由元ラジオは表示しない
+            hide('referralWrap');
             el('custStepLabel').textContent = '📝 STEP1 初回診断（診断士入力）';
             el('custName').value = '';
             el('custPhone').value = '';
