@@ -9,7 +9,7 @@
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
     <!-- ビルド識別子（Service Worker キャッシュとの不一致確認用。デプロイ時に手動更新） -->
-    <meta name="mytone-build" content="2026-05-08-02-owner">
+    <meta name="mytone-build" content="2026-07-15-01-billing-p2">
     <title>MYTONE 予約システム</title>
     <link rel="manifest" href="./manifest.json">
     <meta name="theme-color" content="#5ba88c">
@@ -2307,10 +2307,39 @@
     <!--==========診断士画面==========-->
     <div id="screenDiag" class="container hidden">
         <div class="tab-bar" id="diagTabs">
-            <div class="tab" onclick="switchDiagTab('book')">📝 予約を入れる</div>
-            <div class="tab active" onclick="switchDiagTab('add')">稼働枠追加</div>
-            <div class="tab" onclick="switchDiagTab('list')">稼働枠一覧</div>
-            <div class="tab" onclick="switchDiagTab('dash')">📊 ダッシュボード</div>
+            <div class="tab active" onclick="switchDiagTab('case')">📝 案件起票</div>
+            <div class="tab" onclick="switchDiagTab('caselist')">📋 案件一覧</div>
+        </div>
+        <!-- 診断士用: 案件起票エリア（請求システム） -->
+        <div id="diagCase">
+            <div class="card">
+                <div class="card-title"><span class="ct-icon">📝</span> 案件を起票する</div>
+                <div id="diagSalonWrap">
+                    <label>担当美容室</label>
+                    <select id="diagSalonSelect" onchange="STATE.diag_salon_id=this.value"></select>
+                </div>
+                <label>診断実施日</label>
+                <input id="caseServiceDate" type="date">
+                <label>品目</label>
+                <input id="caseItem" type="text" placeholder="例）通常診断 / モデル診断 / STEP2 など">
+                <label>美容室への請求金額（円・税込）</label>
+                <input id="caseSalonAmount" type="number" inputmode="numeric" min="0" step="1" placeholder="例）11000">
+                <label>診断士への支払金額（円）</label>
+                <input id="caseDiagAmount" type="number" inputmode="numeric" min="0" step="1" placeholder="例）6500">
+                <label>メモ（任意）</label>
+                <input id="caseMemo" type="text" placeholder="補足があれば">
+                <button class="btn btn-primary" onclick="submitCase()" style="margin-top:14px">➕ 起票して承認依頼を送る</button>
+                <div class="msg-info" style="margin-top:10px;font-size:0.82rem">起票すると美容室管理者へLINEで承認依頼が届きます。承認されると予約成立です。</div>
+                <div id="caseMsg"></div>
+            </div>
+        </div>
+        <!-- 診断士用: 案件一覧 -->
+        <div id="diagCaseList" class="hidden">
+            <div class="card">
+                <div class="card-title">📋 起票した案件</div>
+                <button class="btn btn-secondary" onclick="loadCaseList()">🔄 一覧更新</button>
+                <div id="caseListArea" style="margin-top:12px"></div>
+            </div>
         </div>
         <!-- 診断士用予約入力エリア -->
         <div id="diagBook" class="hidden">
@@ -2326,7 +2355,8 @@
                 <div class="msg-info" style="margin-top:10px;font-size:0.82rem"><b>STEP1</b>（初回診断）として登録されます。</div>
             </div>
         </div>
-        <div id="diagAdd">
+        <!-- 旧・稼働枠UI（請求システムPhase 1で無効化。UIは非表示、コードは残置） -->
+        <div id="diagAdd" class="hidden">
             <div class="card">
                 <div class="card-title">稼働枠を追加</div><label>日付</label><input id="availDate"
                     type="date"><label>開始時刻（30分刻み）</label><select
@@ -3862,20 +3892,8 @@
 
         /* ========== 診断士UI ========== */
         function initDiagUI() {
-            const sel = el('availTime');
-            // innerHTML+= を配列join化（毎ループのDOM再解析を廃止）
-            const opts = [];
-            for (let h = 7; h <= 21; h++) {
-                for (const m of ['00', '30']) {
-                    const v = String(h).padStart(2, '0') + ':' + m;
-                    opts.push('<option value="' + v + '">' + v + '</option>');
-                }
-            }
-            sel.innerHTML = opts.join('');
-
-            const tomorrow = new Date();
-            tomorrow.setDate(tomorrow.getDate() + 1);
-            el('availDate').value = fmtDate(tomorrow);
+            // 実施日デフォルト = 今日（請求システム: 案件起票フォーム）
+            if (el('caseServiceDate')) el('caseServiceDate').value = fmtDate(new Date());
 
             // 担当店舗セレクトを初期化（診断士が予約入力機能で使用）
             const salonSel = el('diagSalonSelect');
@@ -3915,11 +3933,11 @@
                         }
                         salonWrap.innerHTML = dbgHtml;
                     }
-                    // 予約入力ボタンを無効化
-                    const bookBtn = document.querySelector('#diagBook .btn-primary');
+                    // 起票ボタンを無効化
+                    const bookBtn = document.querySelector('#diagCase .btn-primary');
                     if (bookBtn) {
                         bookBtn.disabled = true;
-                        bookBtn.textContent = '担当店舗未登録のため利用不可';
+                        bookBtn.textContent = '担当美容室未登録のため利用不可';
                     }
                 }
             }
@@ -3929,21 +3947,79 @@
             const tabs = document.querySelectorAll('#diagTabs .tab');
             tabs.forEach(t => t.classList.remove('active'));
 
-            if (tab === 'book') {
+            if (tab === 'case') {
                 tabs[0].classList.add('active');
-                show('diagBook'); hide('diagAdd'); hide('diagList'); hide('diagDash');
-            } else if (tab === 'add') {
+                show('diagCase'); hide('diagCaseList');
+            } else if (tab === 'caselist') {
                 tabs[1].classList.add('active');
-                hide('diagBook'); show('diagAdd'); hide('diagList'); hide('diagDash');
-            } else if (tab === 'list') {
-                tabs[2].classList.add('active');
-                hide('diagBook'); hide('diagAdd'); show('diagList'); hide('diagDash');
-                doListAvail();
-            } else if (tab === 'dash') {
-                tabs[3].classList.add('active');
-                hide('diagBook'); hide('diagAdd'); hide('diagList'); show('diagDash');
-                loadDiagDashboard();
+                hide('diagCase'); show('diagCaseList');
+                loadCaseList();
             }
+        }
+
+        /* ========== 診断士ロール: 案件起票（請求システム） ========== */
+        function submitCase() {
+            const salonId = STATE.diag_salon_id;
+            if (!salonId) { showToast('担当美容室を選択してください', true); return; }
+            const serviceDate = el('caseServiceDate').value;
+            const item = el('caseItem').value.trim();
+            const salonAmount = el('caseSalonAmount').value;
+            const diagAmount = el('caseDiagAmount').value;
+            const memo = el('caseMemo').value.trim();
+
+            if (!serviceDate) { showToast('診断実施日を入力してください', true); return; }
+            if (salonAmount === '' || Number(salonAmount) < 0) { showToast('美容室への請求金額を入力してください', true); return; }
+            if (diagAmount === '' || Number(diagAmount) < 0) { showToast('診断士への支払金額を入力してください', true); return; }
+
+            const btn = document.querySelector('#diagCase .btn-primary');
+            if (btn) { btn.disabled = true; btn.textContent = '送信中...'; }
+            el('caseMsg').innerHTML = '';
+
+            callApi('apiCreateCase', {
+                line_user_id: STATE.line_user_id,
+                salon_id: salonId,
+                service_date: serviceDate,
+                item: item,
+                salon_amount: Number(salonAmount),
+                diag_amount: Number(diagAmount),
+                memo: memo
+            }, (res) => {
+                if (btn) { btn.disabled = false; btn.textContent = '➕ 起票して承認依頼を送る'; }
+                if (!res.ok) {
+                    el('caseMsg').innerHTML = '<div class="msg-error">' + esc(res.error) + '</div>';
+                    return;
+                }
+                const sentMsg = res.approvers_notified > 0
+                    ? ('美容室管理者 ' + res.approvers_notified + ' 名へ承認依頼を送信しました。')
+                    : '⚠️ 承認者が未登録のため送信できませんでした（マイトーンへ連絡済み）。';
+                el('caseMsg').innerHTML = '<div class="msg-success">✅ 起票しました（' + esc(res.case_id) + '）<br>' + sentMsg + '</div>';
+                el('caseItem').value = '';
+                el('caseSalonAmount').value = '';
+                el('caseDiagAmount').value = '';
+                el('caseMemo').value = '';
+            });
+        }
+
+        function loadCaseList() {
+            const area = el('caseListArea');
+            if (area) area.innerHTML = '<div class="loading-text">読込中...</div>';
+            callApi('apiListCases', { line_user_id: STATE.line_user_id }, (res) => {
+                if (!res.ok) { if (area) area.innerHTML = '<div class="msg-error">' + esc(res.error) + '</div>'; return; }
+                const cases = res.cases || [];
+                if (cases.length === 0) { if (area) area.innerHTML = '<div class="msg-info">案件がありません</div>'; return; }
+                const statusJp = (s) => s === 'CONFIRMED' ? '✅ 予約成立' : (s === 'REJECTED' ? '却下' : '⏳ 承認待ち');
+                const yen = (n) => '¥' + Number(n || 0).toLocaleString('ja-JP');
+                const parts = cases.map((c) =>
+                    '<div class="card" style="padding:12px;margin-bottom:8px">'
+                    + '<div style="font-weight:600">' + esc(c.salon_name) + '　' + esc(statusJp(c.status)) + '</div>'
+                    + '<div style="font-size:0.85rem;color:#555;margin-top:4px">'
+                    + esc(c.service_date) + '　' + esc(c.item || '-') + '<br>'
+                    + '美容室請求: ' + yen(c.salon_amount) + '　診断士支払: ' + yen(c.diag_amount) + '<br>'
+                    + '<span style="color:#999;font-size:0.78rem">' + esc(c.case_id) + '</span>'
+                    + '</div></div>'
+                );
+                if (area) area.innerHTML = parts.join('');
+            });
         }
 
         /* ========== 診断士ロール: 新規予約入力 ========== */
