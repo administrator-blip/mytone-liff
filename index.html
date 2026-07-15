@@ -9,7 +9,7 @@
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
     <!-- ビルド識別子（Service Worker キャッシュとの不一致確認用。デプロイ時に手動更新） -->
-    <meta name="mytone-build" content="2026-07-15-02-case-edit">
+    <meta name="mytone-build" content="2026-07-15-03-salon-cases">
     <title>MYTONE 予約システム</title>
     <link rel="manifest" href="./manifest.json">
     <meta name="theme-color" content="#5ba88c">
@@ -2156,11 +2156,19 @@
     <!--==========スタッフ画面==========-->
     <div id="screenStaff" class="container hidden">
         <div class="tab-bar" id="staffTabs">
-            <div class="tab active" onclick="switchStaffTab('new')">新規予約</div>
-            <div class="tab" onclick="switchStaffTab('list')">予約一覧</div>
+            <div class="tab active" onclick="switchStaffTab('cases')">📋 案件一覧</div>
         </div>
-        <!-- 新規予約 -->
-        <div id="staffNew">
+        <!-- 美容室管理者: 案件一覧（請求システム） -->
+        <div id="staffCaseList">
+            <div class="card">
+                <div class="msg-info" style="font-size:0.85rem">承認は、LINEに届く「承認のお願い」メッセージ内のボタンから行ってください。この画面では案件の状況を確認できます。</div>
+                <div class="card-title" style="margin-top:10px">📋 案件一覧</div>
+                <button class="btn btn-secondary" onclick="loadStaffCaseList()">🔄 一覧更新</button>
+                <div id="staffCaseArea" style="margin-top:12px"></div>
+            </div>
+        </div>
+        <!-- 旧・新規予約UI（請求システムで廃止。非表示・コード残置） -->
+        <div id="staffNew" class="hidden">
             <!-- 今日のサマリーバー -->
             <div id="todaySummary" class="today-summary hidden" onclick="switchStaffTab('list')">
                 <span>📅</span><span class="ts-count" id="todayCount">0</span><span class="ts-label">本日の予約 › 一覧へ</span>
@@ -2839,83 +2847,38 @@
         }
 
         /* ========== スタッフUI ========== */
+        // 美容室管理者画面: 案件一覧を表示（旧予約UIは廃止）
         function initStaffUI() {
-            const tomorrow = new Date();
-            tomorrow.setDate(tomorrow.getDate() + 1);
-            el('searchDate').value = fmtDate(tomorrow);
-            el('changeDate').value = fmtDate(tomorrow);
-
-            // 電話番号入力フィールドの自動整形（数字のみ許可）
-            ['custPhone',
-                's2Phone',
-                'listPhone'].forEach(function (id) {
-                    var inp = el(id);
-
-                    if (inp) inp.addEventListener('input', function () {
-                        var v = this.value.replace(/\D/g, '');
-                        if (this.value !== v) this.value = v;
-                    });
-                });
-
-            // custPhone: 入力後に過去顧客名を検索してオートフィル提案
-            el('custPhone').addEventListener('change', function () {
-                const phone = this.value.trim();
-                const suggestEl = el('custNameSuggest');
-
-                if (!phone || phone.length < 7) {
-                    hide('custNameSuggest'); return;
-                }
-
-                callApi('apiFindCustomerByPhone', {
-                    line_user_id: STATE.line_user_id, customer_phone: phone
-                }
-
-                    , (res) => {
-                        if (!res.ok || !res.customer_name) {
-                            hide('custNameSuggest'); return;
-                        }
-
-                        // 顧客名フィールドが空のときのみ提案
-                        if (el('custName').value.trim()) {
-                            hide('custNameSuggest'); return;
-                        }
-
-                        suggestEl.innerHTML = ` <div class="msg-info" style="display:flex;align-items:center;gap:8px;padding:8px 10px;" > <span style="flex:1" >💡 過去の顧客: <strong>${esc(res.customer_name)
-                            }
-
-                        </strong></span> <button class="btn-copy" onclick="el('custName').value='${esc(res.customer_name)}';hide('custNameSuggest')" >使う</button> </div>`;
-                        show('custNameSuggest');
-                    });
-            });
-            // 診断士リスト読込 + 週間カレンダー描画 + プルトゥリフレッシュ
-            loadDiagList();
-            renderWeekCal();
-
-            // 基準日変更時に週間カレンダーを連動
-            el('searchDate').addEventListener('change', function () {
-                renderWeekCal();
-            });
-
-            resetNewBooking();
+            loadStaffCaseList();
         }
 
         function switchStaffTab(tab) {
-            const tabs = document.querySelectorAll('#staffTabs .tab');
-            tabs.forEach(t => t.classList.remove('active'));
-
-            if (tab === 'new') {
-                tabs[0].classList.add('active');
-                show('staffNew');
-                hide('staffList');
+            // 請求システム: 美容室画面は案件一覧のみ。'new'等の旧呼び出しは無視。
+            if (tab === 'cases' || tab === 'list') {
+                loadStaffCaseList();
             }
+        }
 
-            else {
-                tabs[1].classList.add('active');
-                hide('staffNew');
-                show('staffList');
-                doListBookings();
-                doAdminStats(); // 統計更新
-            }
+        // 美容室管理者向け 案件一覧（診断士支払額＝原価は表示しない）
+        function loadStaffCaseList() {
+            const area = el('staffCaseArea');
+            if (area) area.innerHTML = '<div class="loading-text">読込中...</div>';
+            callApi('apiListCases', { line_user_id: STATE.line_user_id }, (res) => {
+                if (!res.ok) { if (area) area.innerHTML = '<div class="msg-error">' + esc(res.error) + '</div>'; return; }
+                const cases = res.cases || [];
+                if (cases.length === 0) { if (area) area.innerHTML = '<div class="msg-info">案件がありません</div>'; return; }
+                const statusJp = (s) => s === 'CONFIRMED' ? '✅ 予約成立' : (s === 'REJECTED' ? '❌ 却下' : (s === 'CANCELED' ? '🚫 取消済' : '⏳ 承認待ち'));
+                const yen = (n) => '¥' + Number(n || 0).toLocaleString('ja-JP');
+                const parts = cases.map((c) =>
+                    '<div class="card" style="padding:12px;margin-bottom:8px">'
+                    + '<div style="font-weight:600">' + esc(statusJp(c.status)) + '　' + esc(c.diag_name || '') + '</div>'
+                    + '<div style="font-size:0.85rem;color:#555;margin-top:4px">'
+                    + esc(c.service_date) + '　' + esc(c.item || '-') + '<br>'
+                    + 'ご請求額: ' + yen(c.salon_amount)
+                    + '</div></div>'
+                );
+                if (area) area.innerHTML = parts.join('');
+            });
         }
 
         /* --- 新規予約フロー --- */
