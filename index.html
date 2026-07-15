@@ -9,7 +9,7 @@
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
     <!-- ビルド識別子（Service Worker キャッシュとの不一致確認用。デプロイ時に手動更新） -->
-    <meta name="mytone-build" content="2026-07-15-01-billing-p2">
+    <meta name="mytone-build" content="2026-07-15-02-case-edit">
     <title>MYTONE 予約システム</title>
     <link rel="manifest" href="./manifest.json">
     <meta name="theme-color" content="#5ba88c">
@@ -2328,6 +2328,7 @@
                 <input id="caseDiagAmount" type="number" inputmode="numeric" min="0" step="1" placeholder="例）6500">
                 <label>メモ（任意）</label>
                 <input id="caseMemo" type="text" placeholder="補足があれば">
+                <div id="caseEditNote"></div>
                 <button class="btn btn-primary" onclick="submitCase()" style="margin-top:14px">➕ 起票して承認依頼を送る</button>
                 <div class="msg-info" style="margin-top:10px;font-size:0.82rem">起票すると美容室管理者へLINEで承認依頼が届きます。承認されると予約成立です。</div>
                 <div id="caseMsg"></div>
@@ -2470,6 +2471,8 @@
             selectedDiagName: '',
             changeBookingId: '',
             changeSlot: null,
+            editing_case_id: '',   // 請求システム: 案件修正モード（空=新規起票）
+            case_cache: {},        // 請求システム: 案件一覧のキャッシュ（修正プリフィル用）
         };
 
         /* ========== 設定: ここだけ変更する ==========
@@ -3971,11 +3974,26 @@
             if (salonAmount === '' || Number(salonAmount) < 0) { showToast('美容室への請求金額を入力してください', true); return; }
             if (diagAmount === '' || Number(diagAmount) < 0) { showToast('診断士への支払金額を入力してください', true); return; }
 
+            const editing = !!STATE.editing_case_id;
+            const salonName = (STATE.diag_salons.find(s => s.salon_id === salonId) || {}).salon_name || salonId;
+
+            // 起票前の最終確認ダイアログ
+            const confirmMsg = (editing ? '【修正して再承認依頼】\n' : '【この内容で起票します】\n')
+                + '美容室: ' + salonName + '\n'
+                + '実施日: ' + serviceDate + '\n'
+                + '品目: ' + (item || '(なし)') + '\n'
+                + '美容室請求額: ¥' + Number(salonAmount).toLocaleString() + '\n'
+                + '診断士支払額: ¥' + Number(diagAmount).toLocaleString()
+                + (editing ? '\n\n※修正すると仮予約に戻り、美容室へ再度承認依頼が届きます。' : '');
+            if (!confirm(confirmMsg)) return;
+
             const btn = document.querySelector('#diagCase .btn-primary');
+            const defaultLabel = editing ? '✏️ 修正して再承認依頼を送る' : '➕ 起票して承認依頼を送る';
             if (btn) { btn.disabled = true; btn.textContent = '送信中...'; }
             el('caseMsg').innerHTML = '';
 
-            callApi('apiCreateCase', {
+            const action = editing ? 'apiUpdateCase' : 'apiCreateCase';
+            const payload = {
                 line_user_id: STATE.line_user_id,
                 salon_id: salonId,
                 service_date: serviceDate,
@@ -3983,8 +4001,11 @@
                 salon_amount: Number(salonAmount),
                 diag_amount: Number(diagAmount),
                 memo: memo
-            }, (res) => {
-                if (btn) { btn.disabled = false; btn.textContent = '➕ 起票して承認依頼を送る'; }
+            };
+            if (editing) payload.case_id = STATE.editing_case_id;
+
+            callApi(action, payload, (res) => {
+                if (btn) { btn.disabled = false; btn.textContent = defaultLabel; }
                 if (!res.ok) {
                     el('caseMsg').innerHTML = '<div class="msg-error">' + esc(res.error) + '</div>';
                     return;
@@ -3992,12 +4013,23 @@
                 const sentMsg = res.approvers_notified > 0
                     ? ('美容室管理者 ' + res.approvers_notified + ' 名へ承認依頼を送信しました。')
                     : '⚠️ 承認者が未登録のため送信できませんでした（マイトーンへ連絡済み）。';
-                el('caseMsg').innerHTML = '<div class="msg-success">✅ 起票しました（' + esc(res.case_id) + '）<br>' + sentMsg + '</div>';
+                const head = editing ? '✅ 修正しました（' : '✅ 起票しました（';
+                el('caseMsg').innerHTML = '<div class="msg-success">' + head + esc(res.case_id) + '）<br>' + sentMsg + '</div>';
+                cancelEditCase();
                 el('caseItem').value = '';
                 el('caseSalonAmount').value = '';
                 el('caseDiagAmount').value = '';
                 el('caseMemo').value = '';
             });
+        }
+
+        // 編集モード解除（フォームを新規起票状態に戻す）
+        function cancelEditCase() {
+            STATE.editing_case_id = '';
+            const btn = document.querySelector('#diagCase .btn-primary');
+            if (btn) btn.textContent = '➕ 起票して承認依頼を送る';
+            const note = el('caseEditNote');
+            if (note) note.innerHTML = '';
         }
 
         function loadCaseList() {
@@ -4006,19 +4038,58 @@
             callApi('apiListCases', { line_user_id: STATE.line_user_id }, (res) => {
                 if (!res.ok) { if (area) area.innerHTML = '<div class="msg-error">' + esc(res.error) + '</div>'; return; }
                 const cases = res.cases || [];
+                STATE.case_cache = {};
+                cases.forEach(c => { STATE.case_cache[c.case_id] = c; });
                 if (cases.length === 0) { if (area) area.innerHTML = '<div class="msg-info">案件がありません</div>'; return; }
-                const statusJp = (s) => s === 'CONFIRMED' ? '✅ 予約成立' : (s === 'REJECTED' ? '却下' : '⏳ 承認待ち');
+                const statusJp = (s) => s === 'CONFIRMED' ? '✅ 予約成立' : (s === 'REJECTED' ? '❌ 却下' : (s === 'CANCELED' ? '🚫 取消済' : '⏳ 承認待ち'));
                 const yen = (n) => '¥' + Number(n || 0).toLocaleString('ja-JP');
-                const parts = cases.map((c) =>
-                    '<div class="card" style="padding:12px;margin-bottom:8px">'
-                    + '<div style="font-weight:600">' + esc(c.salon_name) + '　' + esc(statusJp(c.status)) + '</div>'
-                    + '<div style="font-size:0.85rem;color:#555;margin-top:4px">'
-                    + esc(c.service_date) + '　' + esc(c.item || '-') + '<br>'
-                    + '美容室請求: ' + yen(c.salon_amount) + '　診断士支払: ' + yen(c.diag_amount) + '<br>'
-                    + '<span style="color:#999;font-size:0.78rem">' + esc(c.case_id) + '</span>'
-                    + '</div></div>'
-                );
+                const parts = cases.map((c) => {
+                    const editable = (c.status === 'PROVISIONAL' || c.status === 'CONFIRMED');
+                    const btns = editable
+                        ? '<div style="margin-top:8px;display:flex;gap:8px">'
+                        + '<button class="btn btn-outline" style="flex:1;padding:6px" onclick="startEditCase(\'' + esc(c.case_id) + '\')">✏️ 修正</button>'
+                        + '<button class="btn btn-outline" style="flex:1;padding:6px" onclick="cancelCaseUi(\'' + esc(c.case_id) + '\')">🚫 取消</button>'
+                        + '</div>'
+                        : '';
+                    return '<div class="card" style="padding:12px;margin-bottom:8px">'
+                        + '<div style="font-weight:600">' + esc(c.salon_name) + '　' + esc(statusJp(c.status)) + '</div>'
+                        + '<div style="font-size:0.85rem;color:#555;margin-top:4px">'
+                        + esc(c.service_date) + '　' + esc(c.item || '-') + '<br>'
+                        + '美容室請求: ' + yen(c.salon_amount) + '　診断士支払: ' + yen(c.diag_amount) + '<br>'
+                        + '<span style="color:#999;font-size:0.78rem">' + esc(c.case_id) + '</span>'
+                        + '</div>' + btns + '</div>';
+                });
                 if (area) area.innerHTML = parts.join('');
+            });
+        }
+
+        // 修正: 案件をフォームに読み込んで編集モードにする
+        function startEditCase(caseId) {
+            const c = (STATE.case_cache || {})[caseId];
+            if (!c) { showToast('案件が見つかりません', true); return; }
+            STATE.editing_case_id = caseId;
+            el('caseServiceDate').value = c.service_date_raw || '';
+            el('caseItem').value = c.item || '';
+            el('caseSalonAmount').value = (c.salon_amount != null ? c.salon_amount : '');
+            el('caseDiagAmount').value = (c.diag_amount != null ? c.diag_amount : '');
+            el('caseMemo').value = (c.memo || '');
+            const btn = document.querySelector('#diagCase .btn-primary');
+            if (btn) btn.textContent = '✏️ 修正して再承認依頼を送る';
+            const note = el('caseEditNote');
+            if (note) note.innerHTML = '<div class="msg-info" style="font-size:0.82rem">✏️ 修正中: ' + esc(caseId) + '（保存すると仮予約に戻り、美容室へ再承認依頼が届きます）<br><a href="javascript:void(0)" onclick="cancelEditCase()">修正をやめる</a></div>';
+            switchDiagTab('case');
+            window.scrollTo(0, 0);
+        }
+
+        // 取消
+        function cancelCaseUi(caseId) {
+            const c = (STATE.case_cache || {})[caseId];
+            const label = c ? (c.salon_name + ' / ' + c.service_date) : caseId;
+            if (!confirm('この案件を取り消しますか？\n' + label + '\n\n※成立済みの場合、美容室にも取消通知が届きます。')) return;
+            callApi('apiCancelCase', { line_user_id: STATE.line_user_id, case_id: caseId }, (res) => {
+                if (!res.ok) { showToast(res.error || '取消に失敗しました', true); return; }
+                showToast('取り消しました');
+                loadCaseList();
             });
         }
 
