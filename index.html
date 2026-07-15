@@ -9,7 +9,7 @@
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
     <!-- ビルド識別子（Service Worker キャッシュとの不一致確認用。デプロイ時に手動更新） -->
-    <meta name="mytone-build" content="2026-07-15-03-salon-cases">
+    <meta name="mytone-build" content="2026-07-15-04-token-mgr">
     <title>MYTONE 予約システム</title>
     <link rel="manifest" href="./manifest.json">
     <meta name="theme-color" content="#5ba88c">
@@ -2619,10 +2619,10 @@
                     STATE.id_token = '';
                 }
 
-                // owner_token URL パラメータがあればオーナー登録を先に処理
+                // owner_token URL パラメータがあれば「美容室管理者」登録を先に処理
                 const ownerToken = _urlParams.get('owner_token');
                 if (ownerToken) {
-                    showStep('オーナー登録処理中...');
+                    showStep('登録処理中...');
                     handleOwnerRegistration(ownerToken);
                     return; // 完了画面後に bootstrap() が呼ばれる
                 }
@@ -2649,7 +2649,7 @@
                         <div class="container">
                             <div class="msg-error" style="margin-top:40px;text-align:center;padding:20px">
                                 <div style="font-size:2rem;margin-bottom:8px">⚠️</div>
-                                <div style="font-weight:700;margin-bottom:8px">オーナー登録に失敗しました</div>
+                                <div style="font-weight:700;margin-bottom:8px">登録に失敗しました</div>
                                 <div style="font-size:0.85rem;color:#666">${esc(res.error || 'unknown error')}</div>
                                 <button class="btn btn-outline" onclick="location.search=''" style="margin-top:14px">通常画面へ</button>
                             </div>
@@ -2662,15 +2662,15 @@
                     <div class="container">
                         <div style="text-align:center;padding:40px 20px">
                             <div style="font-size:4rem;margin-bottom:16px">✅</div>
-                            <div style="font-size:1.2rem;font-weight:700;color:#2d5a4a;margin-bottom:8px">オーナー登録 完了</div>
+                            <div style="font-size:1.2rem;font-weight:700;color:#2d5a4a;margin-bottom:8px">登録 完了</div>
                             <div style="font-size:0.95rem;color:#666;margin-bottom:6px">
-                                <strong>${esc(res.salon_name)}</strong> のオーナーとして
+                                <strong>${esc(res.salon_name)}</strong> の請求担当者として
                             </div>
                             <div style="font-size:0.95rem;color:#666;margin-bottom:24px">
                                 登録されました
                             </div>
                             <div style="font-size:0.78rem;color:#999;margin-bottom:24px">
-                                これ以降、この店舗の請求書は<br>あなたのLINEにお届けします
+                                これ以降、この店舗の承認依頼・請求書が<br>あなたのLINEに届きます
                             </div>
                             <button class="btn btn-primary" onclick="location.search=''">続けて画面を開く</button>
                         </div>
