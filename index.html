@@ -9,7 +9,7 @@
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
     <!-- ビルド識別子（Service Worker キャッシュとの不一致確認用。デプロイ時に手動更新） -->
-    <meta name="mytone-build" content="2026-07-15-04-token-mgr">
+    <meta name="mytone-build" content="2026-07-28-02-multisalon">
     <title>MYTONE 予約システム</title>
     <link rel="manifest" href="./manifest.json">
     <meta name="theme-color" content="#5ba88c">
@@ -913,6 +913,35 @@
             color: rgba(255, 255, 255, 0.9);
             letter-spacing: 0.03em;
             font-weight: 500;
+        }
+
+        /* ========== 店舗切替プルダウン（多店舗オーナー用） ==========
+         * .salon-badge は背景色を持たないため、濃色ヘッダー内で native select に
+         * 流用すると既定の明色背景になり判読できない。専用に指定する。
+         */
+        .salon-select {
+            display: inline-block;
+            font-size: 0.7rem;
+            font-weight: 500;
+            letter-spacing: 0.03em;
+            color: #fff;
+            background: rgba(255, 255, 255, 0.18);
+            border: 1px solid rgba(255, 255, 255, 0.35);
+            border-radius: 10px;
+            padding: 2px 22px 2px 8px;
+            max-width: 60vw;
+            -webkit-appearance: none;
+            appearance: none;
+            background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6'><path d='M0 0l5 6 5-6z' fill='white'/></svg>");
+            background-repeat: no-repeat;
+            background-position: right 7px center;
+        }
+
+        /* iOS/Android の native ドロップダウンは白背景で描画されるため、
+         * option 側は必ず濃色文字を明示する */
+        .salon-select option {
+            color: #222;
+            background: #fff;
         }
 
         /* ========== ダークモード トグルボタン ========== */
@@ -2086,6 +2115,8 @@
         <!-- 下段: バッジ情報 -->
         <div class="header-sub">
             <div id="salonBadge" class="salon-badge hidden"></div>
+            <!-- 多店舗オーナー用の店舗切替（2店舗以上のときだけ表示） -->
+            <select id="salonSelect" class="salon-select hidden" onchange="switchSalon(this.value)"></select>
             <div id="roleBadge" class="role-badge hidden"></div>
         </div>
         <button class="font-toggle" onclick="toggleFontSize()">Aa</button>
@@ -2137,20 +2168,32 @@
     <div id="screenRegister" class="container hidden">
         <div class="register-hero">
             <div class="icon">👤</div>
-            <p>美容室スタッフまたは診断士として<br>ご登録ください</p>
+            <p>美容室または診断士として<br>ご登録ください</p>
         </div>
         <div class="card">
-            <div class="tab-bar">
+            <div class="tab-bar" id="regTabBar">
                 <div class="tab active" onclick="switchRegTab('staff')">スタッフ登録</div>
                 <div class="tab" onclick="switchRegTab('diag')">診断士登録</div>
             </div>
-            <div id="regStaff"><label>店舗コード</label><input id="regSalonCode" placeholder="例: S00001"
-                    autocomplete="off"><button class="btn btn-primary" onclick="doLinkSalon()">登録する</button>
+            <!-- 美容室の登録は owner_token 付きURLのタップに一本化（店舗コード手入力は廃止） -->
+            <div id="regStaff">
+                <div class="msg-info" style="font-size:0.9rem;line-height:1.7">
+                    美容室の方は、マイトーンからお送りした<br><strong>登録URL</strong>をタップしてご登録ください。
+                </div>
+                <div style="font-size:0.82rem;color:#777;margin-top:10px;line-height:1.7">
+                    ・店舗ごとにURLが違います<br>
+                    ・複数店舗を運営されている場合は、店舗ごとのURLをそれぞれタップしてください（先に登録した店舗は消えません）<br>
+                    ・URLが分からない場合はマイトーンまでご連絡ください
+                </div>
             </div>
             <div id="regDiag" class="hidden"><label>診断士ID</label><input id="regDiagId" placeholder="例: D00001"
                     autocomplete="off"><button class="btn btn-primary" onclick="doLinkDiag()">登録する</button>
             </div>
             <div id="regMsg"></div>
+            <!-- 「＋ 店舗を追加」から来たときだけ表示する戻る導線 -->
+            <div id="regCancelRow" class="hidden">
+                <button class="btn btn-outline" onclick="cancelAddSalon()">やめる（案件一覧へ戻る）</button>
+            </div>
         </div>
     </div>
     <!--==========スタッフ画面==========-->
@@ -2164,6 +2207,7 @@
                 <div class="msg-info" style="font-size:0.85rem">承認は、LINEに届く「承認のお願い」メッセージ内のボタンから行ってください。この画面では案件の状況を確認できます。</div>
                 <div class="card-title" style="margin-top:10px">📋 案件一覧</div>
                 <button class="btn btn-secondary" onclick="loadStaffCaseList()">🔄 一覧更新</button>
+                <button class="btn btn-outline" onclick="showAddSalon()" style="margin-top:8px">＋ 店舗を追加</button>
                 <div id="staffCaseArea" style="margin-top:12px"></div>
             </div>
         </div>
@@ -2467,6 +2511,8 @@
             id_token: '',         // LIFF ID Token (GAS側で検証してuserIdをspoof対策)
             role: '',
             salon_id: '',
+            salons: [],           // 美容室管理者/スタッフの所属店舗リスト（apiBootstrapから取得）
+            current_salon_id: '', // 選択中の店舗（'__all__' = 全店舗横断）
             diag_id: '',
             diag_salons: [],      // 診断士の担当店舗リスト（apiBootstrapから取得）
             diag_salon_id: '',    // 診断士が予約入力時に選択した店舗ID
@@ -2669,8 +2715,13 @@
                             <div style="font-size:0.95rem;color:#666;margin-bottom:24px">
                                 登録されました
                             </div>
-                            <div style="font-size:0.78rem;color:#999;margin-bottom:24px">
+                            <div style="font-size:0.78rem;color:#999;margin-bottom:14px">
                                 これ以降、この店舗の承認依頼・請求書が<br>あなたのLINEに届きます
+                            </div>
+                            <div style="font-size:0.78rem;color:#999;margin-bottom:24px">
+                                ${(res.salons && res.salons.length > 1)
+                        ? '他の店舗の登録はそのまま残っています<br>（現在 ' + res.salons.length + '店舗）'
+                        : '複数店舗をお持ちの場合は、店舗ごとの<br>登録URLをそれぞれタップしてください'}
                             </div>
                             <button class="btn btn-primary" onclick="location.search=''">続けて画面を開く</button>
                         </div>
@@ -2716,12 +2767,12 @@
                         STATE.salon_id = res.salon_id;
                         setBadge('スタッフ');
 
-                        // 店舗名バッジ表示
-                        if (res.salon_name) {
-                            const sb = el('salonBadge');
-                            sb.textContent = '🏪 ' + res.salon_name;
-                            sb.classList.remove('hidden');
-                        }
+                        // 【多店舗対応】所属店舗リストを保存。
+                        // res.salons が無い場合（GASが旧版のまま＝デプロイのタイムラグ）は
+                        // 単数フィールドから1店舗ぶんを組み立てて従来動作を維持する。
+                        STATE.salons = res.salons
+                            || (res.salon_id ? [{ salon_id: res.salon_id, salon_name: res.salon_name }] : []);
+                        renderSalonSelector();
 
                         show('screenStaff');
                         initStaffUI();
@@ -2788,34 +2839,9 @@
             el('regMsg').innerHTML = '';
         }
 
-        function doLinkSalon() {
-            const code = el('regSalonCode').value.trim();
-
-            if (!code) {
-                el('regMsg').innerHTML = '<div class="msg-error">店舗コードを入力してください</div>';
-                return;
-            }
-
-            el('regMsg').innerHTML = '<div class="loading-text" style="text-align:center;padding:10px">登録中...</div>';
-
-            callApi('apiLinkSalon', {
-                line_user_id: STATE.line_user_id, salon_code: code
-            }
-
-                , (res) => {
-                    if (!res.ok) {
-                        el('regMsg').innerHTML = '<div class="msg-error">' + esc(res.error) + '</div>'; return;
-                    }
-
-                    STATE.role = 'staff'; STATE.salon_id = res.salon_id;
-                    setBadge('スタッフ');
-                    hide('screenRegister'); show('screenStaff');
-                    initStaffUI();
-                    el('regMsg').innerHTML = '';
-
-                    showToast(res.salon_name + ' のスタッフとして登録しました ✅');
-                });
-        }
+        // doLinkSalon（店舗コード手入力）は 2026-07-28 に廃止。
+        // 美容室の登録は owner_token 付きURLのタップ（handleOwnerRegistration）に一本化した。
+        // GAS側も apiLinkSalon を FN_MAP から外している。
 
         function doLinkDiag() {
             const id = el('regDiagId').value.trim();
@@ -2846,6 +2872,73 @@
                 });
         }
 
+        /* ========== 店舗切替（多店舗オーナー用） ========== */
+        // 1店舗ならバッジ、2店舗以上ならプルダウンを出す。
+        // 既定の選択は先頭店舗（全店舗横断は明示的に選んだときだけ）。
+        function renderSalonSelector() {
+            const sel = el('salonSelect');
+            const bg = el('salonBadge');
+            const list = STATE.salons || [];
+            if (!sel || !bg) return;
+
+            if (list.length <= 1) {
+                sel.classList.add('hidden');
+                if (list.length === 1) {
+                    bg.textContent = '🏪 ' + list[0].salon_name;
+                    bg.classList.remove('hidden');
+                    STATE.current_salon_id = list[0].salon_id;
+                } else {
+                    bg.classList.add('hidden');
+                    STATE.current_salon_id = '';
+                }
+                return;
+            }
+
+            bg.classList.add('hidden');
+            if (!STATE.current_salon_id) STATE.current_salon_id = list[0].salon_id;
+            sel.innerHTML = list.map(s =>
+                '<option value="' + esc(s.salon_id) + '">🏪 ' + esc(s.salon_name) + '</option>'
+            ).join('') + '<option value="__all__">🏪 全店舗（' + list.length + '店）</option>';
+            sel.value = STATE.current_salon_id;
+            sel.classList.remove('hidden');
+        }
+
+        function switchSalon(salonId) {
+            STATE.current_salon_id = salonId || '';
+            // 店舗をまたいで古いデータが描画されないようローカルキャッシュを破棄する
+            // （mytone_bookings_cache / SWRキャッシュのキーは salon_id を含まない）
+            try {
+                Object.keys(localStorage)
+                    .filter(k => k.indexOf('mytone_') === 0 && k !== 'mytone_dark' && k !== 'mytone_font')
+                    .forEach(k => localStorage.removeItem(k));
+            } catch (e) { }
+            loadStaffCaseList();
+        }
+
+        // 店舗を追加する手順を案内する（登録は店舗ごとの登録URLのタップで行う）
+        function showAddSalon() {
+            hide('screenStaff');
+            switchRegTab('staff');
+            hide('regDiag');          // 誤って診断士IDを入力する導線を作らない
+            hide('regTabBar');
+            show('regCancelRow');
+            el('regMsg').innerHTML = '<div class="msg-info" style="font-size:0.85rem;line-height:1.7">'
+                + '追加したい店舗の<strong>登録URL</strong>をタップしてください。<br>'
+                + '今登録されている店舗はそのまま残ります。<br>'
+                + 'URLが分からない場合はマイトーンまでご連絡ください。</div>';
+            show('screenRegister');
+        }
+
+        function cancelAddSalon() {
+            el('regMsg').innerHTML = '';
+            hide('regCancelRow');
+            show('regTabBar');
+            show('regDiag');
+            switchRegTab('staff');
+            hide('screenRegister');
+            show('screenStaff');
+        }
+
         /* ========== スタッフUI ========== */
         // 美容室管理者画面: 案件一覧を表示（旧予約UIは廃止）
         function initStaffUI() {
@@ -2863,20 +2956,38 @@
         function loadStaffCaseList() {
             const area = el('staffCaseArea');
             if (area) area.innerHTML = '<div class="loading-text">読込中...</div>';
-            callApi('apiListCases', { line_user_id: STATE.line_user_id }, (res) => {
+            // 【多店舗対応】選択中の店舗を送る。'__all__' で全所属店舗を横断表示。
+            callApi('apiListCases', {
+                line_user_id: STATE.line_user_id,
+                salon_id: STATE.current_salon_id || '',
+            }, (res) => {
                 if (!res.ok) { if (area) area.innerHTML = '<div class="msg-error">' + esc(res.error) + '</div>'; return; }
+                // サーバが所属店舗リストを返したら（GAS新版）プルダウンを最新化する
+                if (res.salons && res.salons.length && (STATE.salons || []).length !== res.salons.length) {
+                    STATE.salons = res.salons;
+                    renderSalonSelector();
+                }
                 const cases = res.cases || [];
                 if (cases.length === 0) { if (area) area.innerHTML = '<div class="msg-info">案件がありません</div>'; return; }
                 const statusJp = (s) => s === 'CONFIRMED' ? '✅ 予約成立' : (s === 'REJECTED' ? '❌ 却下' : (s === 'CANCELED' ? '🚫 取消済' : '⏳ 承認待ち'));
                 const yen = (n) => '¥' + Number(n || 0).toLocaleString('ja-JP');
+                const multi = (STATE.salons || []).length > 1;
                 const parts = cases.map((c) =>
                     '<div class="card" style="padding:12px;margin-bottom:8px">'
                     + '<div style="font-weight:600">' + esc(statusJp(c.status)) + '　' + esc(c.diag_name || '') + '</div>'
+                    // 複数店舗を持つ人には、どの店舗の案件かを必ず出す
+                    + (multi ? '<div style="font-size:0.8rem;color:#5ba88c;margin-top:2px">🏪 ' + esc(c.salon_name || '') + '</div>' : '')
                     + '<div style="font-size:0.85rem;color:#555;margin-top:4px">'
                     + esc(c.service_date) + '　' + esc(c.item || '-') + '<br>'
                     + 'ご請求額: ' + yen(c.salon_amount)
                     + '</div></div>'
                 );
+                // 100件上限で切られた場合は残件数を明示する（承認漏れ防止）
+                const total = Number(res.total_count || cases.length);
+                if (total > cases.length) {
+                    parts.push('<div class="msg-info" style="font-size:0.85rem">最新 ' + cases.length
+                        + '件を表示しています（全 ' + total + '件）。店舗を切り替えると絞り込めます。</div>');
+                }
                 if (area) area.innerHTML = parts.join('');
             });
         }
